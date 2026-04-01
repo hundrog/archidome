@@ -1,17 +1,13 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: ['@nuxt/ui', '@nuxtjs/supabase'],
-  css: ['~/assets/css/main.css'],
+  modules: ["@nuxt/ui", "@nuxtjs/supabase"],
+  css: ["~/assets/css/main.css"],
   vite: {
     optimizeDeps: {
-      include: [
-        '@vue/devtools-core',
-        '@vue/devtools-kit',
-        'zod',
-      ]
-    }
+      include: ["@vue/devtools-core", "@vue/devtools-kit", "zod"],
+    },
   },
   runtimeConfig: {
     public: {
@@ -22,5 +18,12 @@ export default defineNuxtConfig({
   },
   supabase: {
     // redirect: false
-  }
-})
+    redirectOptions: {
+      login: "/login",
+      callback: "/confirm",
+      include: undefined,
+      exclude: ['/campaigns/**'],
+      saveRedirectToCookie: false,
+    },
+  },
+});
