@@ -2,6 +2,9 @@
 import * as z from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 
+const supabase = useSupabaseClient()
+const config = useRuntimeConfig()
+
 definePageMeta({
   layout: 'auth'
 })
@@ -40,6 +43,7 @@ const providers = [{
   label: 'Discord',
   icon: 'i-simple-icons-discord',
   onClick: () => {
+    signInWithDiscord()
     toast.add({ title: 'Discord', description: 'Login with Discord' })
   }
 }]
@@ -53,6 +57,16 @@ type Schema = z.output<typeof schema>
 
 function onSubmit(payload: FormSubmitEvent<Schema>) {
   console.log('Submitted', payload)
+}
+
+async function signInWithDiscord() {
+  console.log(`${config.public.clientUrl}/confirm`)
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'discord',
+      options: {
+    redirectTo: `${config.public.clientUrl}/confirm`,
+  },
+  })
 }
 </script>
 

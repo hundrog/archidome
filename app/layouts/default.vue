@@ -2,6 +2,8 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 const route = useRoute()
+const user = useSupabaseUser()
+const supabase = useSupabaseClient()
 
 const items = computed<NavigationMenuItem[]>(() => [{
   label: 'Docs',
@@ -20,6 +22,11 @@ const items = computed<NavigationMenuItem[]>(() => [{
   to: 'https://github.com/nuxt/ui/releases',
   target: '_blank'
 }])
+
+const logout = async () => {
+  await supabase.auth.signOut()
+  navigateTo('/login')
+}
 </script>
 
 <template>
@@ -37,10 +44,21 @@ const items = computed<NavigationMenuItem[]>(() => [{
         <UButton
           color="neutral"
           variant="ghost"
+          icon="i-lucide-log-out"
+          aria-label="Logout"
+          label="Logout"
+          v-if="user"
+          @click="logout"
+        />
+
+        <UButton
+          color="neutral"
+          variant="ghost"
           to="/login"
           icon="i-lucide-log-in"
           aria-label="Login"
           label="Login"
+          v-else
         />
       </template>
 
