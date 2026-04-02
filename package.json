@@ -17,5 +17,8 @@
     "vue": "^3.5.31",
     "vue-router": "^5.0.4",
     "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "supabase": "^2.84.6"
   }
 }

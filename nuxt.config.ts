@@ -11,8 +11,6 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      supabaseUrl: process.env.SUPABASE_URL,
-      supabaseKey: process.env.SUPABASE_KEY,
       clientUrl: process.env.APP_URL,
     },
   },
@@ -22,7 +20,7 @@ export default defineNuxtConfig({
       login: "/login",
       callback: "/confirm",
       include: undefined,
-      exclude: ['/campaigns/**'],
+      exclude: ['/campaigns', '/campaigns/*', '/campaigns/**', '/signup'],
       saveRedirectToCookie: false,
     },
   },
