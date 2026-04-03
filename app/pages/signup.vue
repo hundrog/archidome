@@ -49,12 +49,6 @@ const schema = z.object({
   email: z.email('Invalid email'),
   password: z.string().min(8, 'Must be at least 8 characters')
 })
-
-type Schema = z.output<typeof schema>
-
-function onSubmit(payload: FormSubmitEvent<Schema>) {
-  console.log('Submitted', payload)
-}
 </script>
 
 <template>
@@ -64,7 +58,6 @@ function onSubmit(payload: FormSubmitEvent<Schema>) {
     :providers="providers"
     title="Create an account"
     :submit="{ label: 'Create account' }"
-    @submit="onSubmit"
   >
     <template #description>
       Already have an account? <ULink

@@ -55,12 +55,7 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>
 
-function onSubmit(payload: FormSubmitEvent<Schema>) {
-  console.log('Submitted', payload)
-}
-
 async function signInWithDiscord() {
-  console.log(`${config.public.clientUrl}/confirm`)
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'discord',
       options: {
@@ -77,7 +72,6 @@ async function signInWithDiscord() {
     :providers="providers"
     title="Welcome back"
     icon="i-lucide-lock"
-    @submit="onSubmit"
   >
     <template #description>
       Don't have an account? <ULink

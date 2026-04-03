@@ -7,7 +7,6 @@ const user = useSupabaseUser()
 watch(user, () => {
   if (user.value) {
       // Redirect to protected page
-      console.log(user)
       return navigateTo('/campaigns')
   }
 }, { immediate: true })

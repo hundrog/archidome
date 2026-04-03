@@ -52,8 +52,6 @@ if (!campaign.value) {
 }
 
 // ─── ¿Es el dueño? ────────────────────────────────────────────────────────────
-console.log("Usuario:", user.value);
-console.log("Dueño de la campaña:", campaign.value.user_id);
 const isOwner = computed(
   () => !!user.value && user.value.sub === campaign.value?.user_id,
 );
