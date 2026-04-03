@@ -19,9 +19,24 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: "/login",
       callback: "/confirm",
-      include: ['campaigns/[id]/edit', '/campaigns/new'],
-      exclude: ['/campaigns', '/campaigns/[id]', '/signup'],
+      include: ["campaigns/[id]/edit", "/campaigns/new"],
+      exclude: ["/campaigns", "/campaigns/[id]", "/signup"],
       saveRedirectToCookie: false,
+    },
+  },
+  routeRules: {
+    "/**": {
+      headers: {
+        "Content-Security-Policy": [
+          "default-src 'self'",
+          "script-src 'self' 'unsafe-inline'", // unsafe-inline requerido por Nuxt/Vue
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' https: data: blob:", // permite imágenes de Supabase
+          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org",
+          "frame-ancestors 'none'",
+          "base-uri 'self'",
+        ].join("; "),
+      },
     },
   },
 });

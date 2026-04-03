@@ -95,6 +95,19 @@ useSeoMeta({
   description: () => campaign.value?.description ?? "",
   ogImage: () => campaign.value?.image_url ?? undefined,
 });
+
+// protected image URL (solo https y de tu bucket):
+const safeImageUrl = computed(() => {
+  const url = campaign.value?.image_url
+  if (!url) return null
+  // Solo permite URLs de tu bucket de Supabase y https en general
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'https:' ? url : null
+  } catch {
+    return null
+  }
+})
 </script>
 
 <template>
@@ -118,8 +131,8 @@ useSeoMeta({
       <!-- ── Hero imagen ── -->
       <div class="relative w-full h-72 sm:h-96 overflow-hidden bg-gray-900">
         <img
-          v-if="campaign.image_url"
-          :src="campaign.image_url"
+          v-if="safeImageUrl"
+          :src="safeImageUrl"
           :alt="campaign.title"
           class="w-full h-full object-cover"
         />
