@@ -1,6 +1,93 @@
-@import "tailwindcss";
+/* assets/css/main.css */
+/* ── Imports ────────────────────────────────────────────────────────────────── */
 @import "@nuxt/ui";
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Cookie&display=swap');
 
 @theme {
-    --font-cookie: 'Cookie', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body:    'Manrope', sans-serif;
+  --font-cookie:  'Cookie', cursive;
+}
+
+/* ── Base ───────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  background-color: #0d072e; /* surface DEFAULT */
+  color:            #e8e2ff; /* on-surface */
+  font-family:      'Manrope', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display); 
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: #0d072e; }
+::-webkit-scrollbar-thumb { background: #2d2854; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #48436b; }
+
+/* ── Glassmorphism ──────────────────────────────────────────────────────────── */
+.glass {
+  background:      rgba(45, 40, 84, 0.6); /* surface-variant al 60% */
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* ── Ghost border ───────────────────────────────────────────────────────────── */
+.ghost-border {
+  border: 1px solid rgba(72, 67, 107, 0.2); /* outline-variant al 20% */
+}
+
+/* ── Gradiente primario (botones, CTAs) ─────────────────────────────────────── */
+.gradient-primary {
+  background: linear-gradient(135deg, #9fa7ff 0%, #8d98ff 100%);
+}
+
+/* ── Metadata label (sistema, modo de juego, etc) ───────────────────────────── */
+.label-metadata {
+  font-family:    var(--font-body);
+  font-size:      0.75rem;
+  font-weight:    500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color:          #a89ec0;
+}
+
+/* ── Card base ──────────────────────────────────────────────────────────────── */
+.card {
+  background:    #1e174a;
+  border-radius: 1rem;
+  transition:    background 0.2s ease, transform 0.2s ease;
+}
+
+.card:hover {
+  background:  #2b235e;
+  transform:   translateY(-4px);
+}
+
+/* ── NuxtUI overrides ───────────────────────────────────────────────────────── */
+
+/* Inputs */
+.u-input input {
+  background: #000000 !important;
+  color:      #e8e2ff !important;
+  font-family: var(--font-body);
+}
+
+/* Foco con glow primary */
+.u-input input:focus {
+  box-shadow: 0 0 0 2px rgba(159, 167, 255, 0.4) !important;
+}
+
+/* Chips / badges */
+.u-badge {
+  font-family:    var(--font-body);
+  font-size:      0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius:  0.75rem;
 }
