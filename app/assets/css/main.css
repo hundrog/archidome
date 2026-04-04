@@ -1,93 +1,144 @@
 /* assets/css/main.css */
-/* ── Imports ────────────────────────────────────────────────────────────────── */
-@import "@nuxt/ui";
-@import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Cookie&display=swap');
 
+/* ── Imports ─────────────────────────────────────────────────────────────────── */
+@import "tailwindcss";
+@import "@nuxt/ui";
+/* @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=Cookie&display=swap'); */
+
+/* ── Design Tokens ───────────────────────────────────────────────────────────── */
 @theme {
+
+  /* Fonts */
   --font-display: 'Space Grotesk', sans-serif;
   --font-body:    'Manrope', sans-serif;
   --font-cookie:  'Cookie', cursive;
+
+  /* Superficies */
+  --color-surface:          #0d072e;
+  --color-surface-low:      #120c37;
+  --color-surface-high:     #1e174a;
+  --color-surface-bright:   #2b235e;
+  --color-surface-variant:  #2d2854;
+  --color-surface-lowest:   #000000;
+
+  /* Primary */
+  --color-primary:           #9fa7ff;
+  --color-primary-container: #8d98ff;
+  --color-primary-fixed:     #ffffff;
+
+  /* Secondary */
+  --color-secondary:           #be83fa;
+  --color-secondary-container: #62259b;
+  --color-secondary-on:        #e4c4ff;
+
+  /* Tertiary — featured / star */
+  --color-tertiary: #ffd16f;
+
+  /* Texto */
+  --color-on-surface:     #e8e2ff;
+  --color-on-surface-dim: #a89ec0;
+
+  /* Outline */
+  --color-outline:         #48436b;
+  --color-outline-variant: #48436b;
+
+  /* Error */
+  --color-error:           #ff6e84;
+  --color-error-container: #5c1a26;
+
+  /* Border radius */
+  --radius:      0.5rem;
+  --radius-md:   0.75rem;
+  --radius-lg:   1rem;
+  --radius-xl:   1.5rem;
+  --radius-full: 9999px;
+
+  /* Sombras */
+  --shadow-ambient:     0 0 40px 0 rgba(232, 226, 255, 0.06);
+  --shadow-card-hover:  0 8px 32px 0 rgba(159, 167, 255, 0.12);
+  --shadow-input-focus: 0 0 0 2px rgba(159, 167, 255, 0.4);
+  --shadow-input-error: 0 0 0 2px rgba(255, 110, 132, 0.4);
+
+  /* Backdrop blur */
+  --blur-glass: 24px;
+
+  /* Spacing extra */
+  --spacing-18: 4.5rem;
+  --spacing-22: 5.5rem;
+
+  /* Font sizes */
+  --text-display-lg:  3.5rem;
+  --text-display-md:  2.5rem;
+  --text-display-sm:  2rem;
+  --text-headline-lg: 2rem;
+  --text-headline-md: 1.75rem;
+  --text-headline-sm: 1.5rem;
+  --text-body-lg:     1rem;
+  --text-body-md:     0.9375rem;
+  --text-body-sm:     0.875rem;
+  --text-label-lg:    1rem;
+  --text-label-md:    0.75rem;
+  --text-label-sm:    0.6875rem;
 }
 
-/* ── Base ───────────────────────────────────────────────────────────────────── */
+/* ── Base ────────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
 html {
-  background-color: #0d072e; /* surface DEFAULT */
-  color:            #e8e2ff; /* on-surface */
-  font-family:      'Manrope', sans-serif;
+  background-color:       var(--color-surface);
+  color:                  var(--color-on-surface);
+  font-family:            var(--font-body);
   -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display); 
+  font-family: var(--font-display);
 }
 
-/* ── Scrollbar ──────────────────────────────────────────────────────────────── */
+/* ── Scrollbar ───────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar       { width: 6px; }
-::-webkit-scrollbar-track { background: #0d072e; }
-::-webkit-scrollbar-thumb { background: #2d2854; border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background: #48436b; }
+::-webkit-scrollbar-track { background: var(--color-surface); }
+::-webkit-scrollbar-thumb { background: var(--color-surface-variant); border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb:hover { background: var(--color-outline); }
 
-/* ── Glassmorphism ──────────────────────────────────────────────────────────── */
+/* ── Utilidades ──────────────────────────────────────────────────────────────── */
+
+/* Glassmorphism */
 .glass {
-  background:      rgba(45, 40, 84, 0.6); /* surface-variant al 60% */
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background:              rgba(45, 40, 84, 0.6);
+  backdrop-filter:         blur(var(--blur-glass));
+  -webkit-backdrop-filter: blur(var(--blur-glass));
 }
 
-/* ── Ghost border ───────────────────────────────────────────────────────────── */
+/* Ghost border — outline-variant al 20% */
 .ghost-border {
-  border: 1px solid rgba(72, 67, 107, 0.2); /* outline-variant al 20% */
+  border: 1px solid rgba(72, 67, 107, 0.2);
 }
 
-/* ── Gradiente primario (botones, CTAs) ─────────────────────────────────────── */
+/* Gradiente primario */
 .gradient-primary {
-  background: linear-gradient(135deg, #9fa7ff 0%, #8d98ff 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-container) 100%);
 }
 
-/* ── Metadata label (sistema, modo de juego, etc) ───────────────────────────── */
+/* Metadata label (sistema, modo de juego, etc.) */
 .label-metadata {
   font-family:    var(--font-body);
-  font-size:      0.75rem;
+  font-size:      var(--text-label-md);
   font-weight:    500;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color:          #a89ec0;
+  color:          var(--color-on-surface-dim);
 }
 
-/* ── Card base ──────────────────────────────────────────────────────────────── */
+/* Card base */
 .card {
-  background:    #1e174a;
-  border-radius: 1rem;
-  transition:    background 0.2s ease, transform 0.2s ease;
+  background:    var(--color-surface-high);
+  border-radius: var(--radius-lg);
+  transition:    background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
-  background:  #2b235e;
+  background:  var(--color-surface-bright);
   transform:   translateY(-4px);
-}
-
-/* ── NuxtUI overrides ───────────────────────────────────────────────────────── */
-
-/* Inputs */
-.u-input input {
-  background: #000000 !important;
-  color:      #e8e2ff !important;
-  font-family: var(--font-body);
-}
-
-/* Foco con glow primary */
-.u-input input:focus {
-  box-shadow: 0 0 0 2px rgba(159, 167, 255, 0.4) !important;
-}
-
-/* Chips / badges */
-.u-badge {
-  font-family:    var(--font-body);
-  font-size:      0.75rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  border-radius:  0.75rem;
+  box-shadow:  var(--shadow-card-hover);
 }
