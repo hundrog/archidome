@@ -35,10 +35,10 @@ export default defineNuxtConfig({
       headers: {
         "Content-Security-Policy": [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' https://cdnjs.buymeacoffee.com",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.buymeacoffee.com",
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' https: data: blob:",
-          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org",
+          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://api.iconify.design https://api.simplesvg.com https://api.unisvg.com",
           "frame-ancestors 'none'",
           "base-uri 'self'",
         ].join("; "),

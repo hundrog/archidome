@@ -2,6 +2,8 @@
 import { z } from 'zod'
 import { useSupabaseClient } from '#imports'
 import type { Database } from '@/types/database.types'
+const { fuzzCoords }     = useFuzzCoords()
+const { coords, request: requestGeo, loading: geoLoading } = useGeolocation()
 
 type CampaignInsert = Database['public']['Tables']['campaigns']['Insert']
 
@@ -79,22 +81,46 @@ async function onLocationBlur() {
     resolvedCoords.value = null
     return
   }
-
   const result = await geocode(state.location_name)
   if (result) {
-    resolvedCoords.value = { lat: result.lat, lng: result.lng }
+    resolvedCoords.value = fuzzCoords(result.lat, result.lng) // 👈 fuzzing también al geocoder
     toast.add({
-      title:       '📍 Ubicación encontrada',
+      title: '📍 Ubicación encontrada',
       description: result.displayName.split(',').slice(0, 3).join(','),
-      color:       'success'
+      color: 'success'
     })
   } else {
     resolvedCoords.value = null
+    toast.add({ title: 'Ubicación no encontrada', color: 'warning' })
+  }
+}
+// --- Opción para usar ubicación actual del usuario
+async function useMyLocation() {
+  await requestGeo()
+  if (!coords.value) {
+    toast.add({ title: 'No se pudo obtener tu ubicación', color: 'error' })
+    return
+  }
+
+  // Fuzzear antes de hacer reverse geocoding
+  const fuzzed = fuzzCoords(coords.value.lat, coords.value.lng)
+  resolvedCoords.value = fuzzed
+
+  // Reverse geocode para obtener nombre de ciudad
+  const data = await $fetch<{ found: boolean; locationName: string | null }>(
+    '/api/reverse-geocode',
+    { query: { lat: fuzzed.lat, lng: fuzzed.lng } }
+  )
+
+  if (data.found && data.locationName) {
+    state.location_name = data.locationName
     toast.add({
-      title:       'Ubicación no encontrada',
-      description: 'Intenta ser más específico (ej: "Guadalajara, Jalisco")',
-      color:       'warning'
+      title: '📍 Ubicación guardada',
+      description: data.locationName,
+      color: 'success'
     })
+  } else {
+    toast.add({ title: 'No se pudo resolver la ciudad', color: 'warning' })
   }
 }
 
@@ -211,24 +237,34 @@ async function onSubmit() {
 
     <!-- Ubicación: solo para presencial e híbrido -->
     <Transition name="fade">
-      <UFormField
-        v-if="showLocation"
-        label="Ciudad / Ubicación"
-        name="location_name"
-        :hint="resolvedCoords ? '✅ Ubicación verificada' : 'Escribe tu ciudad y sal del campo para verificar'"
-      >
+    <UFormField
+      v-if="showLocation"
+      label="Ciudad / Ubicación"
+      name="location_name"
+      :hint="resolvedCoords ? '✅ Ubicación verificada' : 'Escribe tu ciudad o usa tu ubicación actual'"
+    >
+      <div class="flex gap-2">
         <UInput
           v-model="state.location_name"
           placeholder="Ej: Guadalajara, Jalisco"
           size="lg"
-          class="w-full"
-          :loading="geocoding"
+          class="flex-1"
           :trailing-icon="resolvedCoords ? 'i-lucide-map-pin' : undefined"
           @blur="onLocationBlur"
         />
-        <p v-if="geocodeError" class="text-xs text-red-400 mt-1">{{ geocodeError }}</p>
-      </UFormField>
-    </Transition>
+        <UButton
+          icon="i-lucide-locate-fixed"
+          size="lg"
+          color="neutral"
+          variant="outline"
+          :loading="geoLoading"
+          title="Usar mi ubicación actual"
+          @click="useMyLocation"
+        />
+      </div>
+      <p v-if="geocodeError" class="text-xs text-red-400 mt-1">{{ geocodeError }}</p>
+    </UFormField>
+  </Transition>
 
     <UFormField label="Proyecto" name="project_id" required>
       <USelectMenu
