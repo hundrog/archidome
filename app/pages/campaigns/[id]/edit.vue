@@ -4,5 +4,5 @@ const id = route.params.id as string
 </script>
 
 <template>
-  <CampaignsForm :campaign-id="id" />
+  <CampaignForm :campaign-id="id" />
 </template>

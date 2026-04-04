@@ -1,3 +1,3 @@
 <template>
-  <CampaignsGrid />
+  <CampaignGrid />
 </template>

@@ -15,6 +15,6 @@
         <h1 class="text-2xl font-bold">Crear Campaña</h1>
       </div>
     </template>
-    <CampaignsForm />
+    <CampaignForm />
   </UCard>
 </template>
