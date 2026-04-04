@@ -10,7 +10,6 @@ const user     = useSupabaseUser()
 const toast    = useToast()
 const loading  = ref(false)
 
-console.log('User in ProfileForm:', user.value)
 // ─── Cargar perfil ────────────────────────────────────────────────────────────
 const { data: profile } = await useAsyncData('profile', async () => {
   const { data, error } = await supabase

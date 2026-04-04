@@ -7,18 +7,18 @@ const supabase = useSupabaseClient();
 
 const items = computed<NavigationMenuItem[]>(() => [
   {
-    label: "Settings",
-    to: "/settings",
-    icon: "i-lucide-settings",
-    active: route.path === "/settings",
-  },
-  {
     to: "https://www.buymeacoffee.com/rollatable",
     target: "_blank",
     label: "Buy me a coffee",
     slot: "logo",
     class:
-      "font-cookie text-lg bg-yellow-300 text-gray-900 rounded-full hover:text-yellow-900 transition-colors duration-200 px-3 py-1",
+      "font-cookie text-lg bg-yellow-400 text-gray-900 rounded-full hover:text-yellow-900 transition-colors duration-200 px-3 py-1",
+  },
+  {
+    label: "Settings",
+    to: "/settings",
+    icon: "i-lucide-settings",
+    active: route.path === "/settings",
   },
 ]);
 
@@ -35,7 +35,7 @@ const logout = async () => {
         <Logo class="h-6 w-auto" />
       </template>
 
-      <UNavigationMenu :items="items">
+      <UNavigationMenu :items="items" :ui="{ list: 'gap-2' }">
         <template #logo="{ item }">
           <img
             src="/bmc-logo-no-background.png"
