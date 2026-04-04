@@ -7,14 +7,10 @@ const supabase = useSupabaseClient();
 
 const items = computed<NavigationMenuItem[]>(() => [
   {
-    label: "Figma",
-    to: "https://go.nuxt.com/figma-ui",
-    target: "_blank",
-  },
-  {
-    label: "Releases",
-    to: "https://github.com/nuxt/ui/releases",
-    target: "_blank",
+    label: "Settings",
+    to: "/settings",
+    icon: "i-lucide-settings",
+    active: route.path === "/settings",
   },
   {
     to: "https://www.buymeacoffee.com/rollatable",

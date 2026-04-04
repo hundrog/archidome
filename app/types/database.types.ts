@@ -76,24 +76,42 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
+          discord: string | null
           full_name: string | null
           id: string
+          instagram: string | null
+          twitter: string | null
           updated_at: string | null
           username: string | null
+          website: string | null
+          whatsapp: string | null
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
+          discord?: string | null
           full_name?: string | null
           id: string
+          instagram?: string | null
+          twitter?: string | null
           updated_at?: string | null
           username?: string | null
+          website?: string | null
+          whatsapp?: string | null
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
+          discord?: string | null
           full_name?: string | null
           id?: string
+          instagram?: string | null
+          twitter?: string | null
           updated_at?: string | null
           username?: string | null
+          website?: string | null
+          whatsapp?: string | null
         }
         Relationships: []
       }
@@ -343,6 +361,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      delete_user: { Args: never; Returns: undefined }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {

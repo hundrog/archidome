@@ -25,7 +25,7 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: "/login",
       callback: "/confirm",
-      include: ["campaigns/[id]/edit", "/campaigns/new"],
+      include: ["campaigns/[id]/edit", "/campaigns/new", "/settings"],
       exclude: ["/campaigns", "/campaigns/[id]"],
       saveRedirectToCookie: false,
     },
@@ -35,8 +35,10 @@ export default defineNuxtConfig({
       headers: {
         "Content-Security-Policy": [
           "default-src 'self'",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' https: data: blob:",
+          "worker-src blob:",
           "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://api.iconify.design https://api.simplesvg.com https://api.unisvg.com",
           "frame-ancestors 'none'",
           "base-uri 'self'",
