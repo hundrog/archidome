@@ -3,14 +3,13 @@
 
 // ─── Emits ────────────────────────────────────────────────────────────────────
 const emit = defineEmits<{
-  update: [payload: { lat: number | null; lng: number | null; locationName: string | null }]
+  update: [payload: { lat: number | null; lng: number | null; locationName: string }]
 }>()
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 const props = defineProps<{
-  initialLocationName?: string | null
-  initialLat?: number | null
-  initialLng?: number | null
+  initialLocation?: string | null
+  initialCoords?: { lat: number; lng: number } | null
 }>()
 
 // ─── Setup ────────────────────────────────────────────────────────────────────
@@ -20,21 +19,17 @@ const { fuzzCoords }                                 = useFuzzCoords()
 const { coords, request: requestGeo, loading: geoLoading } = useGeolocation()
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
-const locationName   = ref(props.initialLocationName ?? '')
-const resolvedCoords = ref<{ lat: number; lng: number } | null>(
-  props.initialLat && props.initialLng
-    ? { lat: props.initialLat, lng: props.initialLng }
-    : null
-)
+const locationName   = ref(props.initialLocation ?? '')
+const resolvedCoords = ref<{ lat: number; lng: number } | null>(props.initialCoords ?? null)
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function emitUpdate(lat: number | null, lng: number | null, name: string | null) {
+function emitUpdate(lat: number | null, lng: number | null, name: string ) {
   emit('update', { lat, lng, locationName: name })
 }
 
 function clearLocation() {
   resolvedCoords.value = null
-  emitUpdate(null, null, null)
+  emitUpdate(null, null, '')
 }
 
 // ─── Geocodificar al salir del campo ─────────────────────────────────────────
@@ -90,7 +85,7 @@ async function useMyLocation() {
       color:       'success'
     })
   } else {
-    emitUpdate(fuzzed.lat, fuzzed.lng, null)
+    emitUpdate(fuzzed.lat, fuzzed.lng, '')
     toast.add({ title: 'No se pudo resolver la ciudad', color: 'warning' })
   }
 }

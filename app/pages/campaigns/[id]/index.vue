@@ -1,91 +1,77 @@
 <script setup lang="ts">
-import { useSupabaseClient, useSupabaseUser } from "#imports";
+import { useSupabaseClient, useSupabaseUser } from "#imports"
+import type { Database } from '@/types/database.types'
+import { useCampaignStore } from '~/stores/campaign'
 
-// ─── Tipos ────────────────────────────────────────────────────────────────────
-interface Campaign {
-  id: string;
-  title: string;
-  system: string;
-  description: string;
-  play_mode: "remote" | "in_person" | "hybrid";
-  contact: string;
-  image_url: string | null;
-  user_id: string;
-  created_at: string;
-  projects: { name: string } | null;
+type CampaignWithProject = Database['public']['Tables']['campaigns']['Row'] & {
+  projects?: { name: string }
 }
-
 // ─── Config ───────────────────────────────────────────────────────────────────
 const playModeConfig = {
   remote: { label: "Remoto", icon: "i-lucide-monitor", color: "info" },
   in_person: { label: "Presencial", icon: "i-lucide-users", color: "success" },
   hybrid: { label: "Híbrido", icon: "i-lucide-shuffle", color: "warning" },
-} as const;
+} as const
 
 // ─── Setup ────────────────────────────────────────────────────────────────────
-const route = useRoute();
-const router = useRouter();
-const supabase = useSupabaseClient();
-const user = useSupabaseUser();
-const toast = useToast();
+const route = useRoute()
+const router = useRouter()
+const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+const toast = useToast()
+const store = useCampaignStore()
 
-const id = route.params.id as string;
+const id = route.params.id as string
 
 // ─── Fetch ────────────────────────────────────────────────────────────────────
 const { data: campaign, pending } = await useAsyncData(
   `campaign-${id}`,
   async () => {
+    await store.fetchCampaignById(id)
+    // Still need to fetch with projects relation for this page
     const { data, error } = await supabase
       .from("campaigns")
       .select("*, projects(name)")
       .eq("id", id)
-      .single();
+      .single()
 
-    if (error) throw error;
-    return data as Campaign;
+    if (error) throw error
+    return data as CampaignWithProject
   },
-);
+)
 
 // 404 si no existe
 if (!campaign.value) {
-  throw createError({ statusCode: 404, message: "Campaña no encontrada" });
+  throw createError({ statusCode: 404, message: "Campaña no encontrada" })
 }
 
 // ─── ¿Es el dueño? ────────────────────────────────────────────────────────────
 const isOwner = computed(
   () => !!user.value && user.value.sub === campaign.value?.user_id,
-);
+)
 
 // ─── Eliminar ─────────────────────────────────────────────────────────────────
-const showDeleteModal = ref(false);
-const deleting = ref(false);
+const showDeleteModal = ref(false)
 
 async function deleteCampaign() {
-  deleting.value = true;
   try {
-    // Eliminar imagen del bucket si existe
-    if (campaign.value?.image_url) {
-      const path = campaign.value.image_url.split("/campaign-images/")[1];
-      if (path) {
-        await supabase.storage.from("campaign-images").remove([path]);
-      }
+    // Set current campaign for store
+    if (campaign.value) {
+      store.currentCampaign = campaign.value
     }
 
-    const { error } = await supabase.from("campaigns").delete().eq("id", id);
+    await store.deleteCampaign(id)
 
-    if (error) throw error;
-
-    toast.add({ title: "Campaña eliminada", color: "success" });
-    router.push("/campaigns");
+    toast.add({ title: "Campaña eliminada", color: "success" })
+    router.push("/campaigns")
   } catch (err: any) {
     toast.add({
       title: "Error al eliminar",
       description: err.message,
       color: "error",
-    });
+    })
   } finally {
-    deleting.value = false;
-    showDeleteModal.value = false;
+    showDeleteModal.value = false
   }
 }
 
@@ -94,7 +80,7 @@ useSeoMeta({
   title: () => campaign.value?.title ?? "Campaña",
   description: () => campaign.value?.description ?? "",
   ogImage: () => campaign.value?.image_url ?? undefined,
-});
+})
 
 // protected image URL (solo https y de tu bucket):
 const safeImageUrl = computed(() => {
@@ -289,7 +275,7 @@ const safeImageUrl = computed(() => {
               color="error"
               icon="i-lucide-trash-2"
               label="Eliminar"
-              :loading="deleting"
+              :loading="store.loading"
               @click="deleteCampaign"
             />
           </div>

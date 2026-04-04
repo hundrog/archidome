@@ -8,7 +8,7 @@ export default defineNuxtConfig({
       enabled: true,
     },
   },
-  modules: ["@nuxt/ui", "@nuxtjs/supabase"],
+  modules: ["@nuxt/ui", "@nuxtjs/supabase", "@pinia/nuxt"],
   css: ["~/assets/css/main.css"],
   vite: {
     optimizeDeps: {

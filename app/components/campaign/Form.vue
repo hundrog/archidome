@@ -3,117 +3,77 @@ import { useSupabaseClient } from '#imports'
 import { campaignSchema } from '~/schemas/campaign'
 import type { Database } from '@/types/database.types'
 import type { CampaignForm } from '~/schemas/campaign'
+import { useCampaignStore } from '~/stores/campaign'
 
 type Campaign = Database['public']['Tables']['campaigns']['Row']
 type CampaignInsert = Database['public']['Tables']['campaigns']['Insert']
-type CampaignFormState = CampaignForm
 
-// ─── Setup ───────────────────────────────────────────────────────────────────
 const props = defineProps<{ campaignId?: string }>()
-const isEditMode = computed(() => !!props.campaignId)
+const router = useRouter()
+const toast = useToast()
 const supabase = useSupabaseClient()
-const toast    = useToast()
-const campaign = ref<Campaign | null>(null)
-const existingImageUrl = ref<string | null>(null)
-const shouldDeleteExistingImage = ref(false)
-const loading      = ref(false)
-const imageFile    = ref<File | null>(null)
-const imagePreview = ref<string | null>(null)
-const fileInputRef = ref<HTMLInputElement | null>(null)
-// Coordenadas resueltas por el geocoder
-const resolvedCoords = ref<{ lat: number; lng: number } | null>(null)
-
-function onLocationUpdate(payload: { lat: number | null; lng: number | null; locationName: string | null }) {
-  state.lat = payload.lat ?? undefined
-  state.lng = payload.lng ?? undefined
-  state.location_name = payload.locationName ?? ''
-}
-
-// ─── Proyectos ────────────────────────────────────────────────────────────────
-const { data: projects } = await useAsyncData('projects', async () => {
-  const { data } = await supabase.from('projects').select('id, name')
-  return data ?? []
-})
-
-if (props.campaignId) {
-  const campaignId = props.campaignId
-  const { data } = await useAsyncData(`campaign-${campaignId}`, async () => {
-    const { data, error } = await supabase
-      .from('campaigns')
-      .select('*')
-      .eq('id', campaignId)
-      .single()
-
-    if (error) throw error
-    return data as Campaign
-  })
-
-  if (data.value) {
-    campaign.value = data.value
-    existingImageUrl.value = data.value.image_url
-  }
-}
-
-const projectOptions = computed(() =>
-  (projects.value ?? []).map((p: any) => ({ label: p.name, value: p.id }))
-)
+const store = useCampaignStore()
 
 const playModeOptions = [
-  { label: 'Remoto',     value: 'remote' },
+  { label: 'Remoto', value: 'remote' },
   { label: 'Presencial', value: 'in_person' },
-  { label: 'Híbrido',    value: 'hybrid' }
+  { label: 'Híbrido', value: 'hybrid' }
 ]
 
-// ─── Estado ───────────────────────────────────────────────────────────────────
-const state = reactive<Partial<CampaignFormState>>({
-  title:         '',
-  system:        '',
-  description:   '',
-  play_mode:     'remote',
-  contact:       '',
-  project_id:    undefined,
-  location_name: '',
-  image:         undefined
-})
-
-watch(campaign, (value) => {
-  if (!value) return
-  Object.assign(state, {
-    title:         value.title,
-    system:        value.system,
-    description:   value.description,
-    play_mode:     value.play_mode,
-    contact:       value.contact,
-    project_id:    value.project_id,
-    location_name: value.location_name ?? '',
-    image:         undefined,
-    lat:           value.lat ?? undefined,
-    lng:           value.lng ?? undefined,
-  })
-  imagePreview.value = value.image_url
-  // Inicializar resolvedCoords con valores existentes en edición
-  if (value.lat && value.lng) {
-    resolvedCoords.value = { lat: value.lat, lng: value.lng }
-  }
-}, { immediate: true })
-
-// Solo mostrar campo de ubicación si el modo no es remoto
-const showLocation = computed(() =>
-  state.play_mode === 'in_person' || state.play_mode === 'hybrid'
+const projectOptions = computed(() =>
+  store.projectOptions
 )
 
-// Resetear ubicación si cambia a remoto
-watch(() => state.play_mode, (mode) => {
-  if (mode === 'remote') {
-    state.location_name  = ''
-    resolvedCoords.value = null
+const showLocation = computed(() =>
+  store.showLocation
+)
+
+// Initialize projects if not already loaded
+onMounted(async () => {
+  if (props.campaignId) {
+    await store.fetchCampaignById(props.campaignId)
+    store.setEditMode(props.campaignId)
+
+    if (store.currentCampaign) {
+      const campaign = store.currentCampaign
+      store.setFormField('title', campaign.title)
+      store.setFormField('system', campaign.system)
+      store.setFormField('description', campaign.description)
+      store.setFormField('play_mode', campaign.play_mode)
+      store.setFormField('contact', campaign.contact)
+      store.setFormField('project_id', campaign.project_id)
+      store.setFormField('location_name', campaign.location_name ?? '')
+      store.setLocation(campaign.location_name ?? '',
+        campaign.lat && campaign.lng ? { lat: campaign.lat, lng: campaign.lng } : null
+      )
+
+      if (campaign.image_url) {
+        store.existingImageUrl = campaign.image_url
+        store.imagePreview = campaign.image_url
+      }
+    }
+  }
+
+  if (store.projects.length === 0) {
+    await store.fetchProjects()
   }
 })
 
-// ─── Imagen ───────────────────────────────────────────────────────────────────
+// Reset location if play mode changes
+watch(() => store.form.play_mode, (mode) => {
+  if (mode === 'remote') {
+    store.setLocation('', null)
+  }
+})
+
+// Watch form.play_mode to update local computed
+watch(() => store.form.play_mode, (mode) => {
+  if (!mode) store.setFormField('play_mode', 'remote')
+}, { immediate: true })
+
 function onFileChange(event: Event) {
   const input = event.target as HTMLInputElement
-  const file  = input.files?.[0]
+  const file = input.files?.[0]
   if (!file) return
 
   if (!file.type.startsWith('image/')) {
@@ -125,134 +85,112 @@ function onFileChange(event: Event) {
     return
   }
 
-  imageFile.value    = file
-  state.image        = file
-  imagePreview.value = URL.createObjectURL(file)
+  store.setImage(file)
 }
 
 function removeImage() {
-  imageFile.value    = null
-  imagePreview.value = null
-  state.image        = undefined
-  if (fileInputRef.value) fileInputRef.value.value = ''
+  store.removeImage()
 }
 
-// ─── Subida de imagen ─────────────────────────────────────────────────────────
-async function uploadImage(file: File): Promise<string> {
-  const ext = file.name.split('.').pop()
-  const { data: { user } } = await supabase.auth.getUser()
-  const fileName = `${user!.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-
-  const { error } = await supabase.storage
-    .from('campaign-images')
-    .upload(fileName, file, { cacheControl: '3600', upsert: false })
-
-  if (error) throw new Error(`Error al subir imagen: ${error.message}`)
-
-  const { data } = supabase.storage.from('campaign-images').getPublicUrl(fileName)
-  return data.publicUrl
-}
-
-// ─── Eliminación de imagen ────────────────────────────────────────────────────
-async function deleteImageFromBucket(imageUrl: string) {
-  const path = imageUrl.split('/campaign-images/')[1]
-  if (path) {
-    const { error } = await supabase.storage.from('campaign-images').remove([path])
-    if (error) console.warn('Error eliminando imagen:', error)
-  }
-}
-
-// ─── Submit ───────────────────────────────────────────────────────────────────
 async function onSubmit() {
-  loading.value = true
   try {
-    let imageUrl: string | null = isEditMode.value ? existingImageUrl.value : null
+    let imageUrl: string | null = store.isEditMode ? store.existingImageUrl : null
 
     // Si se marcó para eliminar la imagen existente, eliminarla
-    if (shouldDeleteExistingImage.value && existingImageUrl.value) {
-      await deleteImageFromBucket(existingImageUrl.value)
+    if (store.shouldDeleteExistingImage && store.existingImageUrl) {
+      await store.deleteImageFromBucket(store.existingImageUrl)
       imageUrl = null
     }
 
     // Si hay nueva imagen, subirla (después de eliminar la anterior)
-    if (imageFile.value) imageUrl = await uploadImage(imageFile.value)
+    if (store.imageFile) {
+      imageUrl = await store.uploadImage(store.imageFile)
+    }
 
     const { data: { user } } = await supabase.auth.getUser()
 
     const payload: CampaignInsert = {
-      title:         state.title!,
-      system:        state.system!,
-      description:   state.description!,
-      play_mode:     state.play_mode!,
-      contact:       state.contact!,
-      project_id:    state.project_id!,
-      image_url:     imageUrl,
-      user_id:       user!.id,
-      location_name: showLocation.value ? (state.location_name ?? null) : null,
-      lat:           showLocation.value ? (resolvedCoords.value?.lat ?? null) : null,
-      lng:           showLocation.value ? (resolvedCoords.value?.lng ?? null) : null
+      title: store.form.title!,
+      system: store.form.system!,
+      description: store.form.description!,
+      play_mode: store.form.play_mode!,
+      contact: store.form.contact!,
+      project_id: store.form.project_id!,
+      image_url: imageUrl,
+      user_id: user!.id,
+      location_name: showLocation.value ? (store.form.location_name ?? null) : null,
+      lat: showLocation.value ? (store.resolvedCoords?.lat ?? null) : null,
+      lng: showLocation.value ? (store.resolvedCoords?.lng ?? null) : null
     }
 
-    let error
-    if (isEditMode.value && props.campaignId) {
-      const campaignId = props.campaignId
-      const result = await supabase
-        .from('campaigns')
-        .update(payload)
-        .eq('id', campaignId)
-      error = result.error
+    if (store.isEditMode && props.campaignId) {
+      await store.updateCampaign(props.campaignId, payload)
     } else {
-      const result = await supabase.from('campaigns').insert(payload)
-      error = result.error
+      await store.createCampaign(payload)
     }
 
-    if (error) throw new Error(error.message)
-
-    const successTitle = isEditMode.value ? '¡Campaña actualizada!' : '¡Campaña creada!'
-    const successDescription = isEditMode.value
-      ? `"${state.title}" fue actualizada.`
-      : `"${state.title}" fue guardada.`
+    const successTitle = store.isEditMode ? '¡Campaña actualizada!' : '¡Campaña creada!'
+    const successDescription = store.isEditMode
+      ? `"${store.form.title}" fue actualizada.`
+      : `"${store.form.title}" fue guardada.`
 
     toast.add({ title: successTitle, description: successDescription, color: 'success' })
 
-    if (isEditMode.value && props.campaignId) {
-      await navigateTo('/campaigns')
+    // Navigate after successful save
+    if (store.isEditMode && props.campaignId) {
+      await router.push(`/campaigns/${props.campaignId}`)
     } else {
-      await navigateTo('/campaigns')
+      await router.push('/campaigns')
     }
-
-    shouldDeleteExistingImage.value = false
   } catch (err: any) {
     toast.add({ title: 'Error', description: err.message, color: 'error' })
-  } finally {
-    loading.value = false
   }
 }
 </script>
 
 <template>
-  <UForm :schema="campaignSchema" :state="state" class="space-y-6" @submit="onSubmit">
+  <UForm :schema="campaignSchema" :state="store.form" class="space-y-6" @submit="onSubmit">
 
     <UFormField label="Título de la campaña" name="title" required>
-      <UInput v-model="state.title" placeholder="Ej: La Sombra de Uldra" size="lg" class="w-full" />
+      <UInput
+        :model-value="store.form.title"
+        placeholder="Ej: La Sombra de Uldra"
+        size="lg"
+        class="w-full"
+        @update:model-value="val => store.setFormField('title', val)"
+      />
     </UFormField>
 
     <UFormField label="Sistema de juego" name="system" required>
-      <UInput v-model="state.system" placeholder="Ej: Fabula Ultima, D&D 5e…" size="lg" class="w-full" />
+      <UInput
+        :model-value="store.form.system"
+        placeholder="Ej: Fabula Ultima, D&D 5e…"
+        size="lg"
+        class="w-full"
+        @update:model-value="val => store.setFormField('system', val)"
+      />
     </UFormField>
 
     <UFormField label="Descripción / Trama" name="description" required>
-      <UTextarea v-model="state.description" placeholder="Cuéntale a los jugadores de qué va la campaña…" :rows="4" size="lg" class="w-full" />
+      <UTextarea
+        :model-value="store.form.description"
+        placeholder="Cuéntale a los jugadores de qué va la campaña…"
+        :rows="4"
+        size="lg"
+        class="w-full"
+        @update:model-value="val => store.setFormField('description', val)"
+      />
     </UFormField>
 
     <UFormField label="Modo de juego" name="play_mode" required>
       <USelectMenu
-        v-model="state.play_mode"
+        :model-value="store.form.play_mode"
         :items="playModeOptions"
         value-key="value"
         label-key="label"
         size="lg"
         class="w-full"
+        @update:model-value="val => store.setFormField('play_mode', val)"
       />
     </UFormField>
 
@@ -260,47 +198,56 @@ async function onSubmit() {
     <Transition name="fade">
       <CampaignLocationField
         v-if="showLocation"
-        @update="onLocationUpdate"
+        :initial-location="store.form.location_name"
+        :initial-coords="store.resolvedCoords"
+        @update="({ lat, lng, locationName }) => {
+          store.setLocation(locationName, lat && lng ? { lat, lng } : null)
+        }"
       />
     </Transition>
 
     <UFormField label="Proyecto" name="project_id" required>
       <USelectMenu
-        v-model="state.project_id"
+        :model-value="store.form.project_id"
         :items="projectOptions"
         value-key="value"
         label-key="label"
         placeholder="Selecciona un proyecto"
         size="lg"
         class="w-full"
+        @update:model-value="val => store.setFormField('project_id', val)"
       />
     </UFormField>
 
     <UFormField label="Contacto" name="contact" required>
-      <UInput v-model="state.contact" placeholder="Ej: Discord @usuario, email…" size="lg" class="w-full" />
+      <UInput
+        :model-value="store.form.contact"
+        placeholder="Ej: Discord @usuario, email…"
+        size="lg"
+        class="w-full"
+        @update:model-value="val => store.setFormField('contact', val)"
+      />
     </UFormField>
 
     <!-- Imagen -->
     <CampaignImageField
-      :initial-url="existingImageUrl"
+      :initial-url="store.existingImageUrl"
       @update="({ file, removed }) => {
-        imageFile = file
         if (removed) {
-          shouldDeleteExistingImage = true
-        } else if (file && existingImageUrl) {
-          // Si se selecciona nueva imagen y hay existente, marcar para eliminar
-          shouldDeleteExistingImage = true
+          store.removeImage()
+        } else if (file) {
+          store.setImage(file)
         }
       }"
     />
 
     <div class="flex justify-end pt-2">
-      <UButton 
-        type="submit" 
-        size="lg" 
-        icon="i-lucide-save" 
-        :loading="loading" 
-        :label="isEditMode ? 'Guardar cambios' : 'Crear campaña'" 
+      <UButton
+        type="submit"
+        size="lg"
+        icon="i-lucide-save"
+        :loading="store.loading || store.uploading"
+        :label="store.isEditMode ? 'Guardar cambios' : 'Crear campaña'"
       />
     </div>
 

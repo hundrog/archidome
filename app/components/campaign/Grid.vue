@@ -1,115 +1,55 @@
 <script setup lang="ts">
 import type { Database } from '@/types/database.types'
+import { useCampaignStore } from '~/stores/campaign'
 
 type Campaign = Database['public']['Tables']['campaigns']['Row']
 
-// ─── Config ───────────────────────────────────────────────────────────────────
-const playModeConfig = {
-  remote:    { label: 'Remoto',     icon: 'i-lucide-monitor', color: 'info' },
-  in_person: { label: 'Presencial', icon: 'i-lucide-users',   color: 'success' },
-  hybrid:    { label: 'Híbrido',    icon: 'i-lucide-shuffle', color: 'warning' }
-} as const
-
-// ─── Setup ────────────────────────────────────────────────────────────────────
-const supabase = useSupabaseClient()
-const user = useSupabaseUser()
+const store = useCampaignStore()
 const { coords, loading: geoLoading, error: geoError, request: requestGeo } = useGeolocation()
 
-const search     = ref('')
-const modeFilter = ref<string | null>(null)
-const radiusKm   = ref(50)
-const nearbyOnly = ref(false)
-
 const modeFilterOptions = [
-  { label: 'Todos',      value: null },
-  { label: 'Remoto',     value: 'remote' },
+  { label: 'Todos', value: null },
+  { label: 'Remoto', value: 'remote' },
   { label: 'Presencial', value: 'in_person' },
-  { label: 'Híbrido',    value: 'hybrid' }
+  { label: 'Híbrido', value: 'hybrid' }
 ]
 
 const radiusOptions = [
-  { label: '25 km',  value: 25 },
-  { label: '50 km',  value: 50 },
+  { label: '25 km', value: 25 },
+  { label: '50 km', value: 50 },
   { label: '100 km', value: 100 },
   { label: '200 km', value: 200 }
 ]
 
-// ─── Geolocalización ──────────────────────────────────────────────────────────
+const playModeConfig = {
+  remote: { label: 'Remoto', icon: 'i-lucide-monitor', color: 'info' },
+  in_person: { label: 'Presencial', icon: 'i-lucide-users', color: 'success' },
+  hybrid: { label: 'Híbrido', icon: 'i-lucide-shuffle', color: 'warning' }
+} as const
+
+// Fetch campaigns on mount
+onMounted(async () => {
+  await store.fetchCampaigns()
+})
+
+// Update user coords when geolocation changes
+watch(() => coords.value, (newCoords) => {
+  if (newCoords) {
+    store.setUserCoords(newCoords)
+  }
+})
+
 async function toggleNearby() {
-  if (!nearbyOnly.value) {
+  if (!store.nearbyOnly) {
     if (!coords.value) await requestGeo()
-    if (coords.value) nearbyOnly.value = true
+    if (coords.value) store.setNearbyOnly(true)
   } else {
-    nearbyOnly.value = false
+    store.setNearbyOnly(false)
   }
 }
 
-// ─── Fetch ────────────────────────────────────────────────────────────────────
-const { data: campaigns, pending } = await useAsyncData('campaigns', async () => {
-  const { data, error } = await supabase
-    .from('campaigns')
-    .select('*')
-    .order('created_at', { ascending: false })
-
-  if (error) throw error
-  return data as Campaign[]
-})
-
-// ─── Haversine ────────────────────────────────────────────────────────────────
-function distanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R  = 6371
-  const dL = ((lat2 - lat1) * Math.PI) / 180
-  const dO = ((lng2 - lng1) * Math.PI) / 180
-  const a  =
-    Math.sin(dL / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-    Math.cos((lat2 * Math.PI) / 180) *
-    Math.sin(dO / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
-
-// ─── Filtrado ─────────────────────────────────────────────────────────────────
-const filtered = computed(() => {
-  let list = campaigns.value ?? []
-
-  if (search.value.trim()) {
-    const q = search.value.toLowerCase()
-    list = list.filter(c =>
-      c.title.toLowerCase().includes(q) ||
-      c.system.toLowerCase().includes(q) ||
-      c.description?.toLowerCase().includes(q)
-    )
-  }
-
-  if (modeFilter.value) {
-    list = list.filter(c => c.play_mode === modeFilter.value)
-  }
-
-  if (nearbyOnly.value && coords.value) {
-    list = list.filter(c => {
-      if (c.play_mode === 'remote') return true
-      if (!c.lat || !c.lng) return false
-      return distanceKm(coords.value!.lat, coords.value!.lng, c.lat, c.lng) <= radiusKm.value
-    })
-
-    list = [...list].sort((a, b) => {
-      if (a.play_mode === 'remote') return 1
-      if (b.play_mode === 'remote') return -1
-      if (!a.lat || !b.lat) return 0
-      return (
-        distanceKm(coords.value!.lat, coords.value!.lng, a.lat!, a.lng!) -
-        distanceKm(coords.value!.lat, coords.value!.lng, b.lat!, b.lng!)
-      )
-    })
-  }
-
-  return list
-})
-
-function getDistance(c: Campaign): string | null {
-  if (!nearbyOnly.value || !coords.value || !c.lat || !c.lng) return null
-  const km = distanceKm(coords.value.lat, coords.value.lng, c.lat, c.lng)
-  return km < 1 ? `${Math.round(km * 1000)} m` : `${Math.round(km)} km`
+function getDistance(campaign: Campaign): string | null {
+  return store.getDistance(campaign)
 }
 
 const PLACEHOLDER = 'https://placehold.co/600x340/1a1a2e/e2c97e?text=Sin+imagen'
@@ -118,66 +58,75 @@ const PLACEHOLDER = 'https://placehold.co/600x340/1a1a2e/e2c97e?text=Sin+imagen'
 <template>
   <div class="min-h-screen">
     <div class="flex justify-between max-w-7xl mx-auto mb-8 items-center">
-    <div class="">
-      <h1 class="text-4xl font-bold tracking-tight text-white mb-1">Campañas</h1>
-      <p class="text-gray-400 text-sm">Encuentra tu próxima aventura</p>
-    </div>
-    <div class="">
-      <UButton
-        to="/campaigns/new"
-        icon="i-lucide-plus"
-        label="Crear campaña"
-        size="lg"
-      />
+      <div class="">
+        <h1 class="text-4xl font-bold tracking-tight text-white mb-1">Campañas</h1>
+        <p class="text-gray-400 text-sm">Encuentra tu próxima aventura</p>
       </div>
-  </div>
+      <div class="">
+        <UButton
+          to="/campaigns/new"
+          icon="i-lucide-plus"
+          label="Crear campaña"
+          size="lg"
+        />
+      </div>
+    </div>
 
     <!-- Filtros -->
     <div class="max-w-7xl mx-auto space-y-3 mb-8">
       <div class="flex flex-col sm:flex-row gap-3">
-        <UInput v-model="search" icon="i-lucide-search" placeholder="Buscar por título, sistema…" size="lg" class="flex-1" />
+        <UInput
+          :model-value="store.searchQuery"
+          icon="i-lucide-search"
+          placeholder="Buscar por título, sistema…"
+          size="lg"
+          class="flex-1"
+          @update:model-value="val => store.setSearchQuery(val)"
+        />
         <USelectMenu
-          v-model="modeFilter"
+          :model-value="store.modeFilter"
           :items="modeFilterOptions"
           value-key="value"
           label-key="label"
           placeholder="Modo de juego"
           size="lg"
           class="w-full sm:w-48"
+          @update:model-value="val => store.setModeFilter(val)"
         />
       </div>
 
       <!-- Cercanía -->
       <div class="flex flex-wrap items-center gap-3">
         <UButton
-          :icon="nearbyOnly ? 'i-lucide-map-pin' : 'i-lucide-map-pin-off'"
-          :color="nearbyOnly ? 'primary' : 'neutral'"
-          :variant="nearbyOnly ? 'solid' : 'outline'"
+          :icon="store.nearbyOnly ? 'i-lucide-map-pin' : 'i-lucide-map-pin-off'"
+          :color="store.nearbyOnly ? 'primary' : 'neutral'"
+          :variant="store.nearbyOnly ? 'solid' : 'outline'"
           :loading="geoLoading"
           size="sm"
-          :label="nearbyOnly ? 'Cerca de mí' : 'Mostrar cercanas'"
+          :label="store.nearbyOnly ? 'Cerca de mí' : 'Mostrar cercanas'"
           @click="toggleNearby"
         />
         <Transition name="fade">
           <USelectMenu
-            v-if="nearbyOnly"
-            v-model="radiusKm"
+            v-if="store.nearbyOnly"
+            :model-value="store.radiusKm"
             :items="radiusOptions"
             value-key="value"
             label-key="label"
             size="sm"
             class="w-32"
+            @update:model-value="val => store.setRadiusKm(val)"
           />
         </Transition>
         <p v-if="geoError && !coords" class="text-xs text-red-400">{{ geoError }}</p>
-        <p v-if="nearbyOnly && coords" class="text-xs text-gray-500">
-          Presenciales e híbridas a menos de {{ radiusKm }} km · Las remotas siempre aparecen
+        <p v-if="store.nearbyOnly && coords" class="text-xs text-gray-500">
+          Presenciales e híbridas a menos de {{ store.radiusKm }} km · Las remotas siempre aparecen
         </p>
       </div>
     </div>
 
     <!-- Skeleton -->
-    <div v-if="pending" class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div v-if="store.loading" class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <div v-for="n in 6" :key="n" class="rounded-2xl overflow-hidden bg-gray-900 animate-pulse">
         <div class="h-48 bg-gray-800" />
         <div class="p-5 space-y-3">
@@ -189,9 +138,9 @@ const PLACEHOLDER = 'https://placehold.co/600x340/1a1a2e/e2c97e?text=Sin+imagen'
     </div>
 
     <!-- Grid -->
-    <div v-else-if="filtered.length" class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div v-else-if="store.filteredCampaigns.length" class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <NuxtLink
-        v-for="campaign in filtered"
+        v-for="campaign in store.filteredCampaigns"
         :key="campaign.id"
         :to="`/campaigns/${campaign.id}`"
         class="group rounded-2xl overflow-hidden bg-gray-900 border border-gray-800
@@ -205,7 +154,12 @@ const PLACEHOLDER = 'https://placehold.co/600x340/1a1a2e/e2c97e?text=Sin+imagen'
             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <div class="absolute top-3 right-3 flex flex-col items-end gap-1">
-            <UBadge :color="playModeConfig[campaign.play_mode].color" variant="solid" size="sm" :label="playModeConfig[campaign.play_mode].label">
+            <UBadge
+              :color="playModeConfig[campaign.play_mode].color"
+              variant="solid"
+              size="sm"
+              :label="playModeConfig[campaign.play_mode].label"
+            >
               <template #leading>
                 <UIcon :name="playModeConfig[campaign.play_mode].icon" class="size-3" />
               </template>
@@ -240,14 +194,32 @@ const PLACEHOLDER = 'https://placehold.co/600x340/1a1a2e/e2c97e?text=Sin+imagen'
     </div>
 
     <!-- Empty -->
-    <div v-else-if="user" class="max-w-7xl mx-auto flex flex-col items-center justify-center py-24 gap-4 text-center">
+    <div v-else class="max-w-7xl mx-auto flex flex-col items-center justify-center py-24 gap-4 text-center">
       <UIcon name="i-lucide-scroll" class="size-14 text-gray-700" />
       <p class="text-gray-400 text-lg font-medium">No hay campañas</p>
       <p class="text-gray-600 text-sm">
-        {{ nearbyOnly ? `No hay campañas en ${radiusKm} km de tu ubicación` : search || modeFilter ? 'Intenta con otros filtros' : 'Sé el primero en crear una' }}
+        {{
+          store.nearbyOnly
+            ? `No hay campañas en ${store.radiusKm} km de tu ubicación`
+            : store.searchQuery || store.modeFilter
+              ? 'Intenta con otros filtros'
+              : 'Sé el primero en crear una'
+        }}
       </p>
-      <UButton v-if="nearbyOnly" variant="ghost" icon="i-lucide-map-pin-off" label="Ver todas" @click="nearbyOnly = false" />
-      <UButton v-else-if="search || modeFilter" variant="ghost" icon="i-lucide-x" label="Limpiar filtros" @click="search = ''; modeFilter = null" />
+      <UButton
+        v-if="store.nearbyOnly"
+        variant="ghost"
+        icon="i-lucide-map-pin-off"
+        label="Ver todas"
+        @click="store.setNearbyOnly(false)"
+      />
+      <UButton
+        v-else-if="store.searchQuery || store.modeFilter"
+        variant="ghost"
+        icon="i-lucide-x"
+        label="Limpiar filtros"
+        @click="store.setSearchQuery(''); store.setModeFilter(null)"
+      />
       <UButton v-else to="/campaigns/new" icon="i-lucide-plus" label="Crear campaña" size="lg" />
     </div>
 
