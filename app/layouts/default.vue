@@ -1,24 +1,35 @@
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui'
+import type { NavigationMenuItem } from "@nuxt/ui";
 
-const route = useRoute()
-const user = useSupabaseUser()
-const supabase = useSupabaseClient()
+const route = useRoute();
+const user = useSupabaseUser();
+const supabase = useSupabaseClient();
 
-const items = computed<NavigationMenuItem[]>(() => [{
-  label: 'Figma',
-  to: 'https://go.nuxt.com/figma-ui',
-  target: '_blank'
-}, {
-  label: 'Releases',
-  to: 'https://github.com/nuxt/ui/releases',
-  target: '_blank'
-}])
+const items = computed<NavigationMenuItem[]>(() => [
+  {
+    label: "Figma",
+    to: "https://go.nuxt.com/figma-ui",
+    target: "_blank",
+  },
+  {
+    label: "Releases",
+    to: "https://github.com/nuxt/ui/releases",
+    target: "_blank",
+  },
+  {
+    to: "https://www.buymeacoffee.com/rollatable",
+    target: "_blank",
+    label: "Buy me a coffee",
+    slot: "logo",
+    class:
+      "font-cookie text-lg bg-yellow-300 text-gray-900 rounded-full hover:text-yellow-900 transition-colors duration-200 px-3 py-1",
+  },
+]);
 
 const logout = async () => {
-  await supabase.auth.signOut()
-  navigateTo('/login')
-}
+  await supabase.auth.signOut();
+  navigateTo("/login");
+};
 </script>
 
 <template>
@@ -28,7 +39,16 @@ const logout = async () => {
         <Logo class="h-6 w-auto" />
       </template>
 
-      <UNavigationMenu :items="items" />
+      <UNavigationMenu :items="items">
+        <template #logo="{ item }">
+          <img
+            src="/bmc-logo-no-background.png"
+            alt="Rollatable"
+            class="h-4 w-auto"
+          />
+          <span>{{ (item as NavigationMenuItem).label }}</span>
+        </template>
+      </UNavigationMenu>
 
       <template #right>
         <UColorModeButton />
@@ -55,7 +75,11 @@ const logout = async () => {
       </template>
 
       <template #body>
-        <UNavigationMenu :items="items" orientation="vertical" class="-mx-2.5" />
+        <UNavigationMenu
+          :items="items"
+          orientation="vertical"
+          class="-mx-2.5"
+        />
       </template>
     </UHeader>
 

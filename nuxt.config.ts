@@ -1,7 +1,13 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
-  devtools: { enabled: true },
+  devtools: {
+    enabled: true,
+
+    timeline: {
+      enabled: true,
+    },
+  },
   modules: ["@nuxt/ui", "@nuxtjs/supabase"],
   css: ["~/assets/css/main.css"],
   vite: {
@@ -29,9 +35,9 @@ export default defineNuxtConfig({
       headers: {
         "Content-Security-Policy": [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline'", // unsafe-inline requerido por Nuxt/Vue
+          "script-src 'self' 'unsafe-inline' https://cdnjs.buymeacoffee.com",
           "style-src 'self' 'unsafe-inline'",
-          "img-src 'self' https: data: blob:", // permite imágenes de Supabase
+          "img-src 'self' https: data: blob:",
           "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org",
           "frame-ancestors 'none'",
           "base-uri 'self'",

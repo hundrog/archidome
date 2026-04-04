@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import { useSupabaseClient } from '#imports'
+import type { Database } from '@/types/database.types'
+
+type CampaignInsert = Database['public']['Tables']['campaigns']['Insert']
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 const campaignSchema = z.object({
@@ -147,13 +150,13 @@ async function onSubmit() {
 
     const { data: { user } } = await supabase.auth.getUser()
 
-    const payload = {
-      title:         state.title,
-      system:        state.system,
-      description:   state.description,
-      play_mode:     state.play_mode,
-      contact:       state.contact,
-      project_id:    state.project_id,
+    const payload: CampaignInsert = {
+      title:         state.title!,
+      system:        state.system!,
+      description:   state.description!,
+      play_mode:     state.play_mode!,
+      contact:       state.contact!,
+      project_id:    state.project_id!,
       image_url:     imageUrl,
       user_id:       user!.id,
       location_name: showLocation.value ? (state.location_name ?? null) : null,
