@@ -168,14 +168,14 @@ async function onSubmit() {
   try {
     let imageUrl: string | null = isEditMode.value ? existingImageUrl.value : null
 
-    // Si hay nueva imagen, subirla
-    if (imageFile.value) imageUrl = await uploadImage(imageFile.value)
-
     // Si se marcó para eliminar la imagen existente, eliminarla
     if (shouldDeleteExistingImage.value && existingImageUrl.value) {
       await deleteImageFromBucket(existingImageUrl.value)
       imageUrl = null
     }
+
+    // Si hay nueva imagen, subirla (después de eliminar la anterior)
+    if (imageFile.value) imageUrl = await uploadImage(imageFile.value)
 
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -216,18 +216,12 @@ async function onSubmit() {
     toast.add({ title: successTitle, description: successDescription, color: 'success' })
 
     if (isEditMode.value && props.campaignId) {
-      await navigateTo(`/campaigns/${props.campaignId}`)
-      shouldDeleteExistingImage.value = false
-      return
+      await navigateTo('/campaigns')
+    } else {
+      await navigateTo('/campaigns')
     }
 
-    Object.assign(state, {
-      title: '', system: '', description: '', play_mode: 'remote',
-      contact: '', project_id: undefined, location_name: '', image: undefined
-    })
-    resolvedCoords.value = null
     shouldDeleteExistingImage.value = false
-    imageFile.value = null
   } catch (err: any) {
     toast.add({ title: 'Error', description: err.message, color: 'error' })
   } finally {
