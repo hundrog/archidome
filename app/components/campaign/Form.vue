@@ -201,7 +201,7 @@ async function onSubmit() {
         :initial-location="store.form.location_name"
         :initial-coords="store.resolvedCoords"
         @update="({ lat, lng, locationName }) => {
-          store.setLocation(locationName, lat && lng ? { lat, lng } : null)
+          store.setLocation(locationName, lat != null && lng != null ? { lat, lng } : null)
         }"
       />
     </Transition>

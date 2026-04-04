@@ -68,6 +68,8 @@ export const useCampaignStore = defineStore('campaign', {
       contact: '',
       project_id: undefined,
       location_name: '',
+      lat: undefined,
+      lng: undefined,
       image: undefined,
     },
     isEditMode: false,
@@ -377,6 +379,8 @@ export const useCampaignStore = defineStore('campaign', {
         contact: '',
         project_id: undefined,
         location_name: '',
+        lat: undefined,
+        lng: undefined,
         image: undefined,
       }
       this.imageFile = null
