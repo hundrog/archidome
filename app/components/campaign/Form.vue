@@ -15,6 +15,7 @@ const supabase = useSupabaseClient()
 const toast    = useToast()
 const campaign = ref<Campaign | null>(null)
 const existingImageUrl = ref<string | null>(null)
+const shouldDeleteExistingImage = ref(false)
 const loading      = ref(false)
 const imageFile    = ref<File | null>(null)
 const imagePreview = ref<string | null>(null)
@@ -86,10 +87,14 @@ watch(campaign, (value) => {
     project_id:    value.project_id,
     location_name: value.location_name ?? '',
     image:         undefined,
-    lat:           value.lat,
-    lng:           value.lng,
+    lat:           value.lat ?? undefined,
+    lng:           value.lng ?? undefined,
   })
   imagePreview.value = value.image_url
+  // Inicializar resolvedCoords con valores existentes en edición
+  if (value.lat && value.lng) {
+    resolvedCoords.value = { lat: value.lat, lng: value.lng }
+  }
 }, { immediate: true })
 
 // Solo mostrar campo de ubicación si el modo no es remoto
@@ -148,12 +153,29 @@ async function uploadImage(file: File): Promise<string> {
   return data.publicUrl
 }
 
+// ─── Eliminación de imagen ────────────────────────────────────────────────────
+async function deleteImageFromBucket(imageUrl: string) {
+  const path = imageUrl.split('/campaign-images/')[1]
+  if (path) {
+    const { error } = await supabase.storage.from('campaign-images').remove([path])
+    if (error) console.warn('Error eliminando imagen:', error)
+  }
+}
+
 // ─── Submit ───────────────────────────────────────────────────────────────────
 async function onSubmit() {
   loading.value = true
   try {
     let imageUrl: string | null = isEditMode.value ? existingImageUrl.value : null
+
+    // Si hay nueva imagen, subirla
     if (imageFile.value) imageUrl = await uploadImage(imageFile.value)
+
+    // Si se marcó para eliminar la imagen existente, eliminarla
+    if (shouldDeleteExistingImage.value && existingImageUrl.value) {
+      await deleteImageFromBucket(existingImageUrl.value)
+      imageUrl = null
+    }
 
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -195,6 +217,7 @@ async function onSubmit() {
 
     if (isEditMode.value && props.campaignId) {
       await navigateTo(`/campaigns/${props.campaignId}`)
+      shouldDeleteExistingImage.value = false
       return
     }
 
@@ -203,7 +226,8 @@ async function onSubmit() {
       contact: '', project_id: undefined, location_name: '', image: undefined
     })
     resolvedCoords.value = null
-    removeImage()
+    shouldDeleteExistingImage.value = false
+    imageFile.value = null
   } catch (err: any) {
     toast.add({ title: 'Error', description: err.message, color: 'error' })
   } finally {
@@ -240,7 +264,7 @@ async function onSubmit() {
 
     <!-- Ubicación: solo para presencial e híbrido -->
     <Transition name="fade">
-      <CampaignsLocationField
+      <CampaignLocationField
         v-if="showLocation"
         @update="onLocationUpdate"
       />
@@ -263,31 +287,27 @@ async function onSubmit() {
     </UFormField>
 
     <!-- Imagen -->
-    <UFormField label="Imagen de portada" name="image">
-      <div class="space-y-3">
-        <div
-          v-if="imagePreview"
-          class="relative w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700"
-          style="max-height: 220px;"
-        >
-          <img :src="imagePreview" alt="Preview" class="w-full object-cover" style="max-height: 220px;" />
-          <UButton icon="i-lucide-x" color="error" variant="solid" size="xs" class="absolute top-2 right-2" @click="removeImage" />
-        </div>
-        <div
-          v-else
-          class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-8 cursor-pointer hover:border-primary-400 transition-colors"
-          @click="fileInputRef?.click()"
-        >
-          <UIcon name="i-lucide-image-plus" class="text-4xl text-gray-400" />
-          <p class="text-sm text-gray-500 dark:text-gray-400">Haz clic para subir una imagen</p>
-          <p class="text-xs text-gray-400">PNG, JPG, WEBP · máx. 5 MB</p>
-        </div>
-        <input ref="fileInputRef" type="file" accept="image/*" class="hidden" @change="onFileChange" />
-      </div>
-    </UFormField>
+    <CampaignImageField
+      :initial-url="existingImageUrl"
+      @update="({ file, removed }) => {
+        imageFile = file
+        if (removed) {
+          shouldDeleteExistingImage = true
+        } else if (file && existingImageUrl) {
+          // Si se selecciona nueva imagen y hay existente, marcar para eliminar
+          shouldDeleteExistingImage = true
+        }
+      }"
+    />
 
     <div class="flex justify-end pt-2">
-      <UButton type="submit" size="lg" :loading="loading" icon="i-lucide-save" label="Crear campaña" />
+      <UButton 
+        type="submit" 
+        size="lg" 
+        icon="i-lucide-save" 
+        :loading="loading" 
+        :label="isEditMode ? 'Guardar cambios' : 'Crear campaña'" 
+      />
     </div>
 
   </UForm>
