@@ -1,44 +1,57 @@
 <script setup lang="ts">
-import { z } from 'zod'
 import { useSupabaseClient } from '#imports'
+import { campaignSchema } from '~/schemas/campaign'
 import type { Database } from '@/types/database.types'
-const { fuzzCoords }     = useFuzzCoords()
-const { coords, request: requestGeo, loading: geoLoading } = useGeolocation()
+import type { CampaignForm } from '~/schemas/campaign'
 
+type Campaign = Database['public']['Tables']['campaigns']['Row']
 type CampaignInsert = Database['public']['Tables']['campaigns']['Insert']
+type CampaignFormState = CampaignForm
 
-// ─── Schema ───────────────────────────────────────────────────────────────────
-const campaignSchema = z.object({
-  title:         z.string().min(3, 'El título es muy corto'),
-  system:        z.string().min(2, 'Especifica el sistema (ej: Fabula Ultima)'),
-  description:   z.string().min(10, 'Cuéntanos un poco más de la trama'),
-  play_mode:     z.enum(['remote', 'in_person', 'hybrid']),
-  contact:       z.string().min(3, '¿Cómo te contactan los jugadores?'),
-  project_id:    z.string().uuid('Debes seleccionar un proyecto'),
-  location_name: z.string().optional(),
-  image:         z.any().optional()
-})
-
-type CampaignForm = z.output<typeof campaignSchema>
-
-// ─── Setup ────────────────────────────────────────────────────────────────────
+// ─── Setup ───────────────────────────────────────────────────────────────────
+const props = defineProps<{ campaignId?: string }>()
+const isEditMode = computed(() => !!props.campaignId)
 const supabase = useSupabaseClient()
 const toast    = useToast()
-const { geocode, loading: geocoding, error: geocodeError } = useGeocoder()
-
+const campaign = ref<Campaign | null>(null)
+const existingImageUrl = ref<string | null>(null)
 const loading      = ref(false)
 const imageFile    = ref<File | null>(null)
 const imagePreview = ref<string | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
-
 // Coordenadas resueltas por el geocoder
 const resolvedCoords = ref<{ lat: number; lng: number } | null>(null)
+
+function onLocationUpdate(payload: { lat: number | null; lng: number | null; locationName: string | null }) {
+  state.lat = payload.lat ?? undefined
+  state.lng = payload.lng ?? undefined
+  state.location_name = payload.locationName ?? ''
+}
 
 // ─── Proyectos ────────────────────────────────────────────────────────────────
 const { data: projects } = await useAsyncData('projects', async () => {
   const { data } = await supabase.from('projects').select('id, name')
   return data ?? []
 })
+
+if (props.campaignId) {
+  const campaignId = props.campaignId
+  const { data } = await useAsyncData(`campaign-${campaignId}`, async () => {
+    const { data, error } = await supabase
+      .from('campaigns')
+      .select('*')
+      .eq('id', campaignId)
+      .single()
+
+    if (error) throw error
+    return data as Campaign
+  })
+
+  if (data.value) {
+    campaign.value = data.value
+    existingImageUrl.value = data.value.image_url
+  }
+}
 
 const projectOptions = computed(() =>
   (projects.value ?? []).map((p: any) => ({ label: p.name, value: p.id }))
@@ -51,7 +64,7 @@ const playModeOptions = [
 ]
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
-const state = reactive<Partial<CampaignForm>>({
+const state = reactive<Partial<CampaignFormState>>({
   title:         '',
   system:        '',
   description:   '',
@@ -61,6 +74,23 @@ const state = reactive<Partial<CampaignForm>>({
   location_name: '',
   image:         undefined
 })
+
+watch(campaign, (value) => {
+  if (!value) return
+  Object.assign(state, {
+    title:         value.title,
+    system:        value.system,
+    description:   value.description,
+    play_mode:     value.play_mode,
+    contact:       value.contact,
+    project_id:    value.project_id,
+    location_name: value.location_name ?? '',
+    image:         undefined,
+    lat:           value.lat,
+    lng:           value.lng,
+  })
+  imagePreview.value = value.image_url
+}, { immediate: true })
 
 // Solo mostrar campo de ubicación si el modo no es remoto
 const showLocation = computed(() =>
@@ -74,55 +104,6 @@ watch(() => state.play_mode, (mode) => {
     resolvedCoords.value = null
   }
 })
-
-// ─── Geocodificar al salir del campo ─────────────────────────────────────────
-async function onLocationBlur() {
-  if (!state.location_name?.trim()) {
-    resolvedCoords.value = null
-    return
-  }
-  const result = await geocode(state.location_name)
-  if (result) {
-    resolvedCoords.value = fuzzCoords(result.lat, result.lng) // 👈 fuzzing también al geocoder
-    toast.add({
-      title: '📍 Ubicación encontrada',
-      description: result.displayName.split(',').slice(0, 3).join(','),
-      color: 'success'
-    })
-  } else {
-    resolvedCoords.value = null
-    toast.add({ title: 'Ubicación no encontrada', color: 'warning' })
-  }
-}
-// --- Opción para usar ubicación actual del usuario
-async function useMyLocation() {
-  await requestGeo()
-  if (!coords.value) {
-    toast.add({ title: 'No se pudo obtener tu ubicación', color: 'error' })
-    return
-  }
-
-  // Fuzzear antes de hacer reverse geocoding
-  const fuzzed = fuzzCoords(coords.value.lat, coords.value.lng)
-  resolvedCoords.value = fuzzed
-
-  // Reverse geocode para obtener nombre de ciudad
-  const data = await $fetch<{ found: boolean; locationName: string | null }>(
-    '/api/reverse-geocode',
-    { query: { lat: fuzzed.lat, lng: fuzzed.lng } }
-  )
-
-  if (data.found && data.locationName) {
-    state.location_name = data.locationName
-    toast.add({
-      title: '📍 Ubicación guardada',
-      description: data.locationName,
-      color: 'success'
-    })
-  } else {
-    toast.add({ title: 'No se pudo resolver la ciudad', color: 'warning' })
-  }
-}
 
 // ─── Imagen ───────────────────────────────────────────────────────────────────
 function onFileChange(event: Event) {
@@ -171,7 +152,7 @@ async function uploadImage(file: File): Promise<string> {
 async function onSubmit() {
   loading.value = true
   try {
-    let imageUrl: string | null = null
+    let imageUrl: string | null = isEditMode.value ? existingImageUrl.value : null
     if (imageFile.value) imageUrl = await uploadImage(imageFile.value)
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -190,10 +171,32 @@ async function onSubmit() {
       lng:           showLocation.value ? (resolvedCoords.value?.lng ?? null) : null
     }
 
-    const { error } = await supabase.from('campaigns').insert(payload)
+    let error
+    if (isEditMode.value && props.campaignId) {
+      const campaignId = props.campaignId
+      const result = await supabase
+        .from('campaigns')
+        .update(payload)
+        .eq('id', campaignId)
+      error = result.error
+    } else {
+      const result = await supabase.from('campaigns').insert(payload)
+      error = result.error
+    }
+
     if (error) throw new Error(error.message)
 
-    toast.add({ title: '¡Campaña creada!', description: `"${state.title}" fue guardada.`, color: 'success' })
+    const successTitle = isEditMode.value ? '¡Campaña actualizada!' : '¡Campaña creada!'
+    const successDescription = isEditMode.value
+      ? `"${state.title}" fue actualizada.`
+      : `"${state.title}" fue guardada.`
+
+    toast.add({ title: successTitle, description: successDescription, color: 'success' })
+
+    if (isEditMode.value && props.campaignId) {
+      await navigateTo(`/campaigns/${props.campaignId}`)
+      return
+    }
 
     Object.assign(state, {
       title: '', system: '', description: '', play_mode: 'remote',
@@ -237,34 +240,11 @@ async function onSubmit() {
 
     <!-- Ubicación: solo para presencial e híbrido -->
     <Transition name="fade">
-    <UFormField
-      v-if="showLocation"
-      label="Ciudad / Ubicación"
-      name="location_name"
-      :hint="resolvedCoords ? '✅ Ubicación verificada' : 'Escribe tu ciudad o usa tu ubicación actual'"
-    >
-      <div class="flex gap-2">
-        <UInput
-          v-model="state.location_name"
-          placeholder="Ej: Guadalajara, Jalisco"
-          size="lg"
-          class="flex-1"
-          :trailing-icon="resolvedCoords ? 'i-lucide-map-pin' : undefined"
-          @blur="onLocationBlur"
-        />
-        <UButton
-          icon="i-lucide-locate-fixed"
-          size="lg"
-          color="neutral"
-          variant="outline"
-          :loading="geoLoading"
-          title="Usar mi ubicación actual"
-          @click="useMyLocation"
-        />
-      </div>
-      <p v-if="geocodeError" class="text-xs text-red-400 mt-1">{{ geocodeError }}</p>
-    </UFormField>
-  </Transition>
+      <CampaignsLocationField
+        v-if="showLocation"
+        @update="onLocationUpdate"
+      />
+    </Transition>
 
     <UFormField label="Proyecto" name="project_id" required>
       <USelectMenu

@@ -8,7 +8,10 @@ export const campaignSchema = z.object({
   play_mode: z.enum(['remote', 'in_person', 'hybrid']),
   contact: z.string().min(3, '¿Cómo te contactan los jugadores?'),
   project_id: z.string().uuid('Debes seleccionar un proyecto'),
-  image: z.any().optional() // Para el manejo del archivo antes de subirlo
+  image: z.any().optional(), // Para el manejo del archivo antes de subirlo
+  location_name: z.string().optional(),
+  lat: z.number().optional(),
+  lng: z.number().optional(),
 })
 
 export type CampaignForm = z.output<typeof campaignSchema>
