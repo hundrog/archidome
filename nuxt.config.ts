@@ -20,7 +20,7 @@ export default defineNuxtConfig({
       login: "/login",
       callback: "/confirm",
       include: ["campaigns/[id]/edit", "/campaigns/new"],
-      exclude: ["/campaigns", "/campaigns/[id]", "/signup"],
+      exclude: ["/campaigns", "/campaigns/[id]"],
       saveRedirectToCookie: false,
     },
   },

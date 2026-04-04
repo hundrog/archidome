@@ -1,19 +1,7 @@
 <script setup lang="ts">
-// ─── Tipos ────────────────────────────────────────────────────────────────────
-interface Campaign {
-  id: string
-  title: string
-  system: string
-  description: string
-  play_mode: 'remote' | 'in_person' | 'hybrid'
-  contact: string
-  image_url: string | null
-  user_id: string
-  created_at: string
-  location_name: string | null
-  lat: number | null
-  lng: number | null
-}
+import type { Database } from '@/types/database.types'
+
+type Campaign = Database['public']['Tables']['campaigns']['Row']
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 const playModeConfig = {
@@ -89,7 +77,7 @@ const filtered = computed(() => {
     list = list.filter(c =>
       c.title.toLowerCase().includes(q) ||
       c.system.toLowerCase().includes(q) ||
-      c.description.toLowerCase().includes(q)
+      c.description?.toLowerCase().includes(q)
     )
   }
 
@@ -128,12 +116,21 @@ const PLACEHOLDER = 'https://placehold.co/600x340/1a1a2e/e2c97e?text=Sin+imagen'
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-950 text-gray-100 px-4 py-10">
-
-    <div class="max-w-7xl mx-auto mb-10">
+  <div class="min-h-screen">
+    <div class="flex justify-between max-w-7xl mx-auto mb-8 items-center">
+    <div class="">
       <h1 class="text-4xl font-bold tracking-tight text-white mb-1">Campañas</h1>
       <p class="text-gray-400 text-sm">Encuentra tu próxima aventura</p>
     </div>
+    <div class="">
+      <UButton
+        to="/campaigns/new"
+        icon="i-lucide-plus"
+        label="Crear campaña"
+        size="lg"
+      />
+      </div>
+  </div>
 
     <!-- Filtros -->
     <div class="max-w-7xl mx-auto space-y-3 mb-8">
