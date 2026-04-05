@@ -27,10 +27,10 @@ const modeOptions = [
 ];
 
 const radiusOptions = [
-  { label: "25 km", value: 25 },
-  { label: "50 km", value: 50 },
-  { label: "100 km", value: 100 },
-  { label: "200 km", value: 200 },
+  { label: "2 km", value: 2 },
+  { label: "5 km", value: 5 },
+  { label: "10 km", value: 10 },
+  { label: "20 km", value: 20 },
 ];
 
 function onModeChange(event: Event) {
@@ -51,10 +51,10 @@ function onRadiusChange(event: Event) {
   <div class="max-w-7xl mx-auto mb-8">
     <!-- ── Contenedor glass ── -->
     <div
-      class="glass ghost-border rounded-xl p-1.5 flex flex-col sm:flex-row items-stretch gap-1"
+      class="glass ghost-border rounded-xl p-1.5 gap-1 grid grid-cols-8"
     >
       <!-- Búsqueda por texto -->
-      <div class="flex items-center gap-3 flex-1 px-4 py-2">
+      <div class="flex items-center gap-3 flex-1 px-4 py-2 col-span-8 lg:col-span-4">
         <UIcon
           name="i-lucide-search"
           class="size-4 shrink-0 text-on-surface-dim"
@@ -68,36 +68,27 @@ function onRadiusChange(event: Event) {
         />
       </div>
 
-      <!-- Divisor -->
-      <div class="hidden sm:block w-px bg-outline-variant/20 my-2" />
-
       <!-- Modo de juego -->
-      <div class="flex items-center gap-3 px-4 py-2 sm:w-52">
+      <div class="flex items-center gap-1 px-4 py-2 col-span-4 lg:col-span-2 lg:gap-3">
         <UIcon
           name="i-lucide-layout-grid"
           class="size-4 shrink-0 text-on-surface-dim"
         />
-        <select
-          :value="mode ?? ''"
-          class="flex-1 bg-transparent text-on-surface text-body-md outline-none font-body cursor-pointer appearance-none"
-          @change="onModeChange"
-        >
-          <option
-            v-for="opt in modeOptions"
-            :key="String(opt.value)"
-            :value="opt.value ?? ''"
-            class="bg-surface-high text-on-surface"
-          >
-            {{ opt.label }}
-          </option>
-        </select>
+        <USelect
+          :model-value="mode"
+          :items="modeOptions"
+          value-key="value"
+          label-key="label"
+          variant="ghost"
+          size="md"
+          class="flex-1 bg-transparent text-on-surface text-body-md outline-none font-body cursor-pointer"
+          placeholder="Todos los modos"
+          @update:model-value="val => emit('update:mode', val)"
+        />
       </div>
 
-      <!-- Divisor -->
-      <div class="hidden sm:block w-px bg-outline-variant/20 my-2" />
-
       <!-- Cercanía -->
-      <div class="flex items-center gap-3 px-4 py-2 sm:w-44">
+      <div class="flex items-center gap-1 px-4 py-2 col-span-4 lg:col-span-2 lg:gap-3">
         <UIcon
           :name="nearby ? 'i-lucide-map-pin' : 'i-lucide-map-pin-off'"
           class="size-4 shrink-0"
@@ -110,38 +101,24 @@ function onRadiusChange(event: Event) {
           @click="emit('toggleNearby')"
         >
           <span v-if="geoLoading">Buscando…</span>
-          <span v-else-if="nearby">Cerca de mí</span>
+          <span v-else-if="nearby">Distancia</span>
           <span v-else>Cualquier lugar</span>
         </button>
 
         <!-- Radio selector cuando está activo -->
         <Transition name="fade">
-          <select
+          <USelect
             v-if="nearby"
-            :value="radius"
-            class="bg-transparent text-primary text-label-md outline-none font-body cursor-pointer appearance-none"
-            @change="onRadiusChange"
-          >
-            <option
-              v-for="opt in radiusOptions"
-              :key="opt.value"
-              :value="opt.value"
-              class="bg-surface-high text-on-surface"
-            >
-              {{ opt.label }}
-            </option>
-          </select>
+            :model-value="radius"
+            :items="radiusOptions"
+            value-key="value"
+            label-key="label"
+            size="md"
+            class="bg-transparent text-primary text-label-md outline-none font-body cursor-pointer"
+            @update:model-value="val => emit('update:radius', val)"
+          />
         </Transition>
       </div>
-
-      <!-- CTA Buscar -->
-      <button
-        class="gradient-primary text-white font-body font-medium text-body-md rounded-lg px-6 py-2.5 shrink-0 transition-transform active:scale-[0.98] flex items-center gap-2 justify-center"
-        @click="emit('toggleNearby')"
-      >
-        <UIcon name="i-lucide-compass" class="size-4" />
-        Explorar
-      </button>
     </div>
 
     <!-- Error geo -->

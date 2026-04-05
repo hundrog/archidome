@@ -84,7 +84,7 @@ export const useCampaignStore = defineStore('campaign', {
 
     searchQuery: '',
     modeFilter: null,
-    radiusKm: 50,
+    radiusKm: 5,
     nearbyOnly: false,
     userCoords: null,
 
