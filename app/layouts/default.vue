@@ -30,7 +30,7 @@ const logout = async () => {
 
 <template>
   <UApp>
-    <UHeader>
+    <UHeader transparent>
       <template #title>
         <Logo class="h-6 w-auto" />
       </template>
@@ -79,7 +79,7 @@ const logout = async () => {
       </template>
     </UHeader>
 
-    <UMain class="max-w-screen-2xl m-auto p-4">
+    <UMain class="max-w-7xl m-auto">
       <slot />
     </UMain>
 

@@ -48,7 +48,7 @@ function onRadiusChange(event: Event) {
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto mb-8">
+  <div class="w-full mx-auto">
     <!-- ── Contenedor glass ── -->
     <div
       class="glass ghost-border rounded-xl p-1.5 gap-1 grid grid-cols-8"
