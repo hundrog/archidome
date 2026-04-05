@@ -7,7 +7,6 @@ type Campaign = Database['public']['Tables']['campaigns']['Row']
 const store = useCampaignStore()
 const { coords, loading: geoLoading, error: geoError, request: requestGeo } = useGeolocation()
 
-
 const search     = computed({
   get: () => store.searchQuery,
   set: (val) => store.setSearchQuery(val)
@@ -24,12 +23,6 @@ const radiusKm = computed({
   get: () => store.radiusKm,
   set: (val) => store.setRadiusKm(val)
 })
-
-const playModeConfig = {
-  remote: { label: 'Remoto', icon: 'i-lucide-monitor', color: 'info' },
-  in_person: { label: 'Presencial', icon: 'i-lucide-users', color: 'success' },
-  hybrid: { label: 'Híbrido', icon: 'i-lucide-shuffle', color: 'warning' }
-} as const
 
 // Fetch campaigns on mount
 onMounted(async () => {
@@ -55,8 +48,6 @@ async function toggleNearby() {
 function getDistance(campaign: Campaign): string | null {
   return store.getDistance(campaign)
 }
-
-const PLACEHOLDER = 'https://placehold.co/600x340/1a1a2e/e2c97e?text=Sin+imagen'
 </script>
 
 <template>
@@ -102,58 +93,12 @@ const PLACEHOLDER = 'https://placehold.co/600x340/1a1a2e/e2c97e?text=Sin+imagen'
 
     <!-- Grid -->
     <div v-else-if="store.filteredCampaigns.length" class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <NuxtLink
+      <CampaignCard
         v-for="campaign in store.filteredCampaigns"
         :key="campaign.id"
-        :to="`/campaigns/${campaign.id}`"
-        class="group rounded-2xl overflow-hidden bg-gray-900 border border-gray-800
-               hover:border-gray-600 transition-all duration-300
-               hover:shadow-xl hover:shadow-black/40 hover:-translate-y-1 flex flex-col"
-      >
-        <div class="relative h-48 overflow-hidden bg-gray-800 shrink-0">
-          <img
-            :src="campaign.image_url ?? PLACEHOLDER"
-            :alt="campaign.title"
-            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-          <div class="absolute top-3 right-3 flex flex-col items-end gap-1">
-            <UBadge
-              :color="playModeConfig[campaign.play_mode].color"
-              variant="solid"
-              size="sm"
-              :label="playModeConfig[campaign.play_mode].label"
-            >
-              <template #leading>
-                <UIcon :name="playModeConfig[campaign.play_mode].icon" class="size-3" />
-              </template>
-            </UBadge>
-            <UBadge v-if="getDistance(campaign)" color="neutral" variant="solid" size="sm">
-              <template #leading><UIcon name="i-lucide-map-pin" class="size-3" /></template>
-              {{ getDistance(campaign) }}
-            </UBadge>
-          </div>
-        </div>
-
-        <div class="p-5 flex flex-col flex-1 gap-3">
-          <div>
-            <h2 class="text-lg font-semibold text-white leading-snug line-clamp-1 group-hover:text-primary-400 transition-colors">
-              {{ campaign.title }}
-            </h2>
-            <p class="text-xs text-primary-400 font-medium mt-0.5 uppercase tracking-wide">{{ campaign.system }}</p>
-          </div>
-          <p class="text-sm text-gray-400 line-clamp-3 flex-1">{{ campaign.description }}</p>
-          <div class="flex items-center justify-between pt-2 border-t border-gray-800 mt-auto">
-            <div class="flex items-center gap-2 min-w-0">
-              <UIcon name="i-lucide-message-circle" class="size-4 text-gray-500 shrink-0" />
-              <span class="text-xs text-gray-500 truncate">{{ campaign.contact }}</span>
-            </div>
-            <div v-if="campaign.location_name" class="flex items-center gap-1 ml-2 shrink-0">
-              <UIcon name="i-lucide-map-pin" class="size-3 text-gray-600" />
-              <span class="text-xs text-gray-600 truncate max-w-24">{{ campaign.location_name.split(',')[0] }}</span>
-            </div>
-          </div>
-        </div>
-      </NuxtLink>
+        :campaign="campaign"
+        :distance="getDistance(campaign)"
+      />
     </div>
 
     <!-- Empty -->
@@ -185,7 +130,6 @@ const PLACEHOLDER = 'https://placehold.co/600x340/1a1a2e/e2c97e?text=Sin+imagen'
       />
       <UButton v-else to="/campaigns/new" icon="i-lucide-plus" label="Crear campaña" size="lg" />
     </div>
-
   </div>
 </template>
 
