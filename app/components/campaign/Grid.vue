@@ -7,19 +7,23 @@ type Campaign = Database['public']['Tables']['campaigns']['Row']
 const store = useCampaignStore()
 const { coords, loading: geoLoading, error: geoError, request: requestGeo } = useGeolocation()
 
-const modeFilterOptions = [
-  { label: 'Todos', value: null },
-  { label: 'Remoto', value: 'remote' },
-  { label: 'Presencial', value: 'in_person' },
-  { label: 'Híbrido', value: 'hybrid' }
-]
 
-const radiusOptions = [
-  { label: '25 km', value: 25 },
-  { label: '50 km', value: 50 },
-  { label: '100 km', value: 100 },
-  { label: '200 km', value: 200 }
-]
+const search     = computed({
+  get: () => store.searchQuery,
+  set: (val) => store.setSearchQuery(val)
+})
+const modeFilter = computed({
+  get: () => store.modeFilter,
+  set: (val) => store.setModeFilter(val)
+})
+const nearbyOnly = computed({
+  get: () => store.nearbyOnly,
+  set: (val) => store.setNearbyOnly(val)
+})
+const radiusKm = computed({
+  get: () => store.radiusKm,
+  set: (val) => store.setRadiusKm(val)
+})
 
 const playModeConfig = {
   remote: { label: 'Remoto', icon: 'i-lucide-monitor', color: 'info' },
@@ -73,57 +77,16 @@ const PLACEHOLDER = 'https://placehold.co/600x340/1a1a2e/e2c97e?text=Sin+imagen'
     </div>
 
     <!-- Filtros -->
-    <div class="max-w-7xl mx-auto space-y-3 mb-8">
-      <div class="flex flex-col sm:flex-row gap-3">
-        <UInput
-          :model-value="store.searchQuery"
-          icon="i-lucide-search"
-          placeholder="Buscar por título, sistema…"
-          size="lg"
-          class="flex-1"
-          @update:model-value="val => store.setSearchQuery(val)"
-        />
-        <USelectMenu
-          :model-value="store.modeFilter"
-          :items="modeFilterOptions"
-          value-key="value"
-          label-key="label"
-          placeholder="Modo de juego"
-          size="lg"
-          class="w-full sm:w-48"
-          @update:model-value="val => store.setModeFilter(val)"
-        />
-      </div>
-
-      <!-- Cercanía -->
-      <div class="flex flex-wrap items-center gap-3">
-        <UButton
-          :icon="store.nearbyOnly ? 'i-lucide-map-pin' : 'i-lucide-map-pin-off'"
-          :color="store.nearbyOnly ? 'primary' : 'neutral'"
-          :variant="store.nearbyOnly ? 'solid' : 'outline'"
-          :loading="geoLoading"
-          size="sm"
-          :label="store.nearbyOnly ? 'Cerca de mí' : 'Mostrar cercanas'"
-          @click="toggleNearby"
-        />
-        <Transition name="fade">
-          <USelectMenu
-            v-if="store.nearbyOnly"
-            :model-value="store.radiusKm"
-            :items="radiusOptions"
-            value-key="value"
-            label-key="label"
-            size="sm"
-            class="w-32"
-            @update:model-value="val => store.setRadiusKm(val)"
-          />
-        </Transition>
-        <p v-if="geoError && !coords" class="text-xs text-red-400">{{ geoError }}</p>
-        <p v-if="store.nearbyOnly && coords" class="text-xs text-gray-500">
-          Presenciales e híbridas a menos de {{ store.radiusKm }} km · Las remotas siempre aparecen
-        </p>
-      </div>
-    </div>
+    <CampaignSearchBar
+      v-model:search="search"
+      v-model:mode="modeFilter"
+      v-model:nearby="nearbyOnly"
+      v-model:radius="radiusKm"
+      :geo-loading="geoLoading"
+      :geo-error="geoError"
+      :has-coords="!!coords"
+      @toggle-nearby="toggleNearby"
+    />
 
     <!-- Skeleton -->
     <div v-if="store.loading" class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
