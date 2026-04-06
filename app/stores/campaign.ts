@@ -170,7 +170,7 @@ export const useCampaignStore = defineStore('campaign', {
         const supabase = useSupabaseClient()
         const { data, error } = await supabase
           .from('campaigns')
-          .select('*')
+          .select('*, profiles!campaigns_profile_fkey(full_name, username, avatar_url)')
           .order('created_at', { ascending: false })
 
         if (error) throw error

@@ -2,7 +2,13 @@
 // components/campaign/Card.vue
 import type { Database } from '@/types/database.types'
 
-type Campaign = Database['public']['Tables']['campaigns']['Row']
+type Campaign = Database['public']['Tables']['campaigns']['Row'] & {
+  profiles?: {
+    full_name: string | undefined
+    username: string | null
+    avatar_url: string | null
+  }
+}
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 const props = defineProps<{
@@ -79,23 +85,42 @@ const PLACEHOLDER = 'https://placehold.co/600x340/1e174a/9fa7ff?text=Sin+imagen'
         {{ campaign.description }}
       </p>
 
-      <!-- ── Footer ── -->
-      <div class="flex items-center justify-between pt-3 mt-auto border-t border-outline-variant/10">
-        <div class="flex items-center gap-2 min-w-0">
-          <UIcon name="i-lucide-message-circle" class="size-3.5 text-on-surface-dim shrink-0" />
-          <span class="font-body text-label-sm text-on-surface-dim truncate">
-            {{ campaign.contact }}
-          </span>
-        </div>
+<!-- ── Footer ── -->
+<div class="flex items-center justify-between pt-3 mt-auto border-t border-outline-variant/10">
+  
+  <!-- GM info -->
+  <div class="flex items-center gap-2 min-w-0">
+    <!-- Avatar -->
+    <img
+      v-if="campaign.profiles?.avatar_url"
+      :src="campaign.profiles.avatar_url"
+      :alt="campaign.profiles.full_name"
+      class="size-6 rounded-full object-cover shrink-0"
+    />
+    <div
+      v-else
+      class="size-6 rounded-full bg-surface-variant flex items-center justify-center shrink-0"
+    >
+      <UIcon name="i-lucide-user" class="size-3 text-on-surface-dim" />
+    </div>
 
-        <div v-if="campaign.location_name" class="flex items-center gap-1 ml-2 shrink-0">
-          <UIcon name="i-lucide-map-pin" class="size-3 text-on-surface-dim" />
-          <span class="font-body text-label-sm text-on-surface-dim truncate max-w-24">
-            {{ campaign.location_name.split(',')[0] }}
-          </span>
-        </div>
-      </div>
+    <!-- Nombre -->
+    <span class="font-body text-label-sm text-on-surface-dim truncate">
+      {{ campaign.profiles?.username
+        ? `@${campaign.profiles.username}`
+        : campaign.profiles?.full_name ?? 'GM desconocido' }}
+    </span>
+  </div>
 
+  <!-- Ubicación -->
+  <div v-if="campaign.location_name" class="flex items-center gap-1 ml-2 shrink-0">
+    <UIcon name="i-lucide-map-pin" class="size-3 text-on-surface-dim" />
+    <span class="font-body text-label-sm text-on-surface-dim truncate max-w-24">
+      {{ campaign.location_name.split(',')[0] }}
+    </span>
+  </div>
+
+</div>
     </div>
   </NuxtLink>
 </template>

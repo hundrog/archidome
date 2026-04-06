@@ -85,7 +85,7 @@ async function onSubmit() {
           />
         </UFormField>
 
-        <UFormField label="Username" name="username" hint="Solo letras, números y _">
+        <UFormField label="Display name" name="username" hint="Solo letras, números y _">
           <UInput
             v-model="state.username"
             placeholder="tu_username"
