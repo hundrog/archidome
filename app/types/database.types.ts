@@ -16,11 +16,11 @@ export type Database = {
     Tables: {
       campaigns: {
         Row: {
-          about: string | null
           created_at: string
           description: string | null
           duration: string | null
           frequency: Database["public"]["Enums"]["frequency_type"] | null
+          hook: string | null
           house_rules: Json | null
           id: string
           image_url: string | null
@@ -41,11 +41,11 @@ export type Database = {
           virtual_platform: string | null
         }
         Insert: {
-          about?: string | null
           created_at?: string
           description?: string | null
           duration?: string | null
           frequency?: Database["public"]["Enums"]["frequency_type"] | null
+          hook?: string | null
           house_rules?: Json | null
           id?: string
           image_url?: string | null
@@ -66,11 +66,11 @@ export type Database = {
           virtual_platform?: string | null
         }
         Update: {
-          about?: string | null
           created_at?: string
           description?: string | null
           duration?: string | null
           frequency?: Database["public"]["Enums"]["frequency_type"] | null
+          hook?: string | null
           house_rules?: Json | null
           id?: string
           image_url?: string | null
@@ -373,11 +373,11 @@ export type Database = {
       campaigns_nearby: {
         Args: { radius_km?: number; user_lat: number; user_lng: number }
         Returns: {
-          about: string | null
           created_at: string
           description: string | null
           duration: string | null
           frequency: Database["public"]["Enums"]["frequency_type"] | null
+          hook: string | null
           house_rules: Json | null
           id: string
           image_url: string | null
@@ -1175,13 +1175,6 @@ export type Database = {
       campaign_status_type: "recruiting" | "active" | "full" | "completed"
       frequency_type: "weekly" | "biweekly" | "monthly" | "irregular"
       play_mode_type: "remote" | "in_person" | "hybrid"
-      virtual_platform_type:
-        | "discord"
-        | "roll20"
-        | "foundry"
-        | "google_meet"
-        | "tabletop_simulator"
-        | "other"
     }
     CompositeTypes: {
       geometry_dump: {
@@ -1320,14 +1313,6 @@ export const Constants = {
       campaign_status_type: ["recruiting", "active", "full", "completed"],
       frequency_type: ["weekly", "biweekly", "monthly", "irregular"],
       play_mode_type: ["remote", "in_person", "hybrid"],
-      virtual_platform_type: [
-        "discord",
-        "roll20",
-        "foundry",
-        "google_meet",
-        "tabletop_simulator",
-        "other",
-      ],
     },
   },
 } as const
