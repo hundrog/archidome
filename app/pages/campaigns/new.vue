@@ -1,5 +1,8 @@
 <!-- pages/campaigns/new.vue -->
 <script setup lang="ts">
+import { hookSchema, portalSchema, rulesSchema } from "@/schemas/campaign";
+import { z } from "zod";
+
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const toast = useToast();
@@ -11,7 +14,7 @@ const campaignStore = useCampaignStore();
 // ─── Imagen ───────────────────────────────────────────────────────────────────
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
-const currentTab = ref("hook");
+const currentTab = ref("0");
 
 const tabs = [
   { label: "01 Hook", slot: "hook", icon: "i-lucide-book-open" },
@@ -22,59 +25,56 @@ const tabs = [
 
 // Validación por tab antes de avanzar
 function validateCurrentTab(): boolean {
-  if (currentTab.value === "hook") {
-    if (!campaignStore.form.title || campaignStore.form.title.length < 3) {
+  try {
+    console.log("Validando tab", currentTab.value);
+    if (currentTab.value === "0") {
+      hookSchema.parse(campaignStore.form);
+    } else if (currentTab.value === "1") {
+      portalSchema.parse(campaignStore.form);
+    } else if (currentTab.value === "2") {
+      rulesSchema.parse(campaignStore.form);
+    } else if (currentTab.value === "3") {
+      if (!campaignStore.form.project_id) {
+        toast.add({
+          title: "Faltan datos",
+          description: "Selecciona un proyecto",
+          color: "warning",
+        });
+        return false;
+      }
+    }
+    return true;
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      const issue = err.issues[0];
       toast.add({
         title: "Faltan datos",
-        description: "El título debe tener al menos 3 caracteres",
+        description: issue?.message,
         color: "warning",
       });
-      return false;
     }
-    if (!campaignStore.form.system || campaignStore.form.system.length < 2) {
-      toast.add({
-        title: "Faltan datos",
-        description: "Especifica el sistema de juego",
-        color: "warning",
-      });
-      return false;
-    }
-    if (!campaignStore.form.hook || campaignStore.form.hook.length < 10) {
-      toast.add({
-        title: "Faltan datos",
-        description: "El hook debe tener al menos 10 caracteres",
-        color: "warning",
-      });
-      return false;
-    }
+    return false;
   }
-  if (currentTab.value === "house") {
-    if (!campaignStore.form.project_id) {
-      toast.add({
-        title: "Faltan datos",
-        description: "Selecciona un proyecto",
-        color: "warning",
-      });
-      return false;
-    }
-  }
-  return true;
 }
 
 function nextTab() {
   if (!validateCurrentTab()) return;
-  const idx = tabs.findIndex((t) => t.slot === currentTab.value);
-  if (idx !== -1 && idx < tabs.length - 1)
-    currentTab.value = tabs[idx + 1]!.slot;
+
+  const idx = parseInt(currentTab.value, 10);
+  if (idx !== -1 && idx < tabs.length - 1) {
+    currentTab.value = (idx + 1).toString();
+  }
 }
 
 function prevTab() {
-  const idx = tabs.findIndex((t) => t.slot === currentTab.value);
-  if (idx !== -1 && idx > 0) currentTab.value = tabs[idx - 1]!.slot;
+  const idx = parseInt(currentTab.value, 10);
+  if (idx !== -1 && idx > 0) {
+    currentTab.value = (idx - 1).toString();
+  }
 }
 
-const isLastTab = computed(() => currentTab.value === "house");
-const isFirstTab = computed(() => currentTab.value === "hook");
+const isLastTab = computed(() => currentTab.value === "3");
+const isFirstTab = computed(() => currentTab.value === "0");
 
 // ─── Subida de imagen ─────────────────────────────────────────────────────────
 
@@ -157,12 +157,7 @@ async function onSubmit() {
       </div>
 
       <!-- ── Tabs ── -->
-      <UTabs
-        v-model:model-value="currentTab"
-        :items="tabs"
-        variant="link"
-        :ui="{ list: 'border-b border-outline-variant/20' }"
-      >
+      <UTabs v-model="currentTab" :items="tabs"">
         <!-- Hook -->
         <template #hook>
           <div class="pt-8">
