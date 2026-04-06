@@ -1,21 +1,46 @@
 // components/campaign/form/StepHouse.vue
 <script setup lang="ts">
+interface FetchProject {
+  id: string;
+  name: string;
+}
+
 const campaignStore = useCampaignStore();
 
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 
 // ─── Proyectos ────────────────────────────────────────────────────────────────
-const { data: projects } = await useAsyncData("projects-form", async () => {
-  const { data } = await supabase
-    .from("projects")
-    .select("id, name")
-    .eq("user_id", user.value!.id);
-  return data ?? [];
+const projects = ref<FetchProject[]>([]);
+
+async function fetchProjects() {
+  if (!user.value?.sub) return;
+
+  try {
+    const { data } = await supabase
+      .from("projects")
+      .select("id, name")
+      .eq("user_id", user.value.sub);
+    projects.value = data ?? [];
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+  }
+}
+
+// Fetch projects when component mounts
+onMounted(() => {
+  fetchProjects();
+});
+
+// Also fetch when user changes
+watch(user, () => {
+  if (user.value) {
+    fetchProjects();
+  }
 });
 
 const projectOptions = computed(() =>
-  (projects.value ?? []).map((p: any) => ({ label: p.name, value: p.id })),
+  projects.value.map((p: any) => ({ label: p.name, value: p.id })),
 );
 
 // ─── Resumen ──────────────────────────────────────────────────────────────────
