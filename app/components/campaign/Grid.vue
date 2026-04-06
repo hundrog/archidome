@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Database } from "@/types/database.types";
-import { useCampaignStore } from "~/stores/campaign";
+import { useCampaignStore } from "@/stores/campaign";
 
 type Campaign = Database["public"]["Tables"]["campaigns"]["Row"];
 
@@ -155,8 +155,8 @@ function getDistance(campaign: Campaign): string | null {
       <CampaignCard
         v-for="campaign in store.filteredCampaigns"
         :key="campaign.id"
-        :campaign="campaign"
-        :distance="getDistance(campaign)"
+        :campaign="(campaign as Campaign)"
+        :distance="getDistance(campaign as Campaign)"
       />
     </div>
 

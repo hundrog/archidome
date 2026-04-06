@@ -26,7 +26,6 @@ const tabs = [
 // Validación por tab antes de avanzar
 function validateCurrentTab(): boolean {
   try {
-    console.log("Validando tab", currentTab.value);
     if (currentTab.value === "0") {
       hookSchema.parse(campaignStore.form);
     } else if (currentTab.value === "1") {
