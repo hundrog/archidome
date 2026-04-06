@@ -15,6 +15,12 @@ const items = computed<NavigationMenuItem[]>(() => [
       "font-cookie text-lg bg-yellow-400 text-gray-900 rounded-full hover:text-yellow-900 transition-colors duration-200 px-3 py-1",
   },
   {
+    label: "Crear campaña",
+    to: "/campaigns/new",
+    icon: "i-lucide-plus",
+    active: route.path === "/campaigns/new",
+  },
+  {
     label: "Settings",
     to: "/settings",
     icon: "i-lucide-settings",

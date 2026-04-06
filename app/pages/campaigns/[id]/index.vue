@@ -97,7 +97,7 @@ const safeImageUrl = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-950 text-gray-100">
+  <div class="min-h-screen bg-surface text-on-surface">
     <!-- ── Loading ── -->
     <div
       v-if="pending"
@@ -115,7 +115,7 @@ const safeImageUrl = computed(() => {
 
     <template v-else-if="campaign">
       <!-- ── Hero imagen ── -->
-      <div class="relative w-full h-72 sm:h-96 overflow-hidden bg-gray-900">
+      <div class="relative w-full h-72 sm:h-96 overflow-hidden bg-surface">
         <img
           v-if="safeImageUrl"
           :src="safeImageUrl"
@@ -123,7 +123,7 @@ const safeImageUrl = computed(() => {
           class="w-full h-full object-cover"
         />
         <div
-          class="absolute inset-0 bg-linear-to-t from-gray-950 via-gray-950/40 to-transparent"
+          class="absolute inset-0 bg-linear-to-t from-surface via-surface/40 to-transparent"
         />
 
         <!-- Botón volver -->
