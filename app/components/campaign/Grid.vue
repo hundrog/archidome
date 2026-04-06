@@ -71,7 +71,7 @@ function getDistance(campaign: Campaign): string | null {
           alt=""
           class="w-full h-full object-cover object-center"
         />
-                <!-- Overlay oscuro -->
+        <!-- Overlay oscuro -->
         <div class="absolute inset-0 bg-surface/60" />
         <!-- Fade radial desde el centro hacia los 4 bordes -->
         <div

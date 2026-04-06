@@ -16,54 +16,88 @@ export type Database = {
     Tables: {
       campaigns: {
         Row: {
-          contact: string
+          about: string | null
           created_at: string
           description: string | null
+          duration: string | null
+          frequency: Database["public"]["Enums"]["frequency_type"] | null
+          house_rules: Json | null
           id: string
           image_url: string | null
+          language: string | null
           lat: number | null
           lng: number | null
           location_name: string | null
+          max_players: number | null
           play_mode: Database["public"]["Enums"]["play_mode_type"]
           project_id: string
+          start_level: number | null
           status: Database["public"]["Enums"]["campaign_status_type"]
+          style_tags: string[] | null
           system: string
+          timezone: string | null
           title: string
           user_id: string
+          virtual_platform: string | null
         }
         Insert: {
-          contact: string
+          about?: string | null
           created_at?: string
           description?: string | null
+          duration?: string | null
+          frequency?: Database["public"]["Enums"]["frequency_type"] | null
+          house_rules?: Json | null
           id?: string
           image_url?: string | null
+          language?: string | null
           lat?: number | null
           lng?: number | null
           location_name?: string | null
+          max_players?: number | null
           play_mode?: Database["public"]["Enums"]["play_mode_type"]
           project_id: string
+          start_level?: number | null
           status?: Database["public"]["Enums"]["campaign_status_type"]
+          style_tags?: string[] | null
           system: string
+          timezone?: string | null
           title: string
           user_id: string
+          virtual_platform?: string | null
         }
         Update: {
-          contact?: string
+          about?: string | null
           created_at?: string
           description?: string | null
+          duration?: string | null
+          frequency?: Database["public"]["Enums"]["frequency_type"] | null
+          house_rules?: Json | null
           id?: string
           image_url?: string | null
+          language?: string | null
           lat?: number | null
           lng?: number | null
           location_name?: string | null
+          max_players?: number | null
           play_mode?: Database["public"]["Enums"]["play_mode_type"]
           project_id?: string
+          start_level?: number | null
           status?: Database["public"]["Enums"]["campaign_status_type"]
+          style_tags?: string[] | null
           system?: string
+          timezone?: string | null
           title?: string
           user_id?: string
+          virtual_platform?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "campaigns_profile_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "campaigns_project_id_fkey"
             columns: ["project_id"]
@@ -339,20 +373,29 @@ export type Database = {
       campaigns_nearby: {
         Args: { radius_km?: number; user_lat: number; user_lng: number }
         Returns: {
-          contact: string
+          about: string | null
           created_at: string
           description: string | null
+          duration: string | null
+          frequency: Database["public"]["Enums"]["frequency_type"] | null
+          house_rules: Json | null
           id: string
           image_url: string | null
+          language: string | null
           lat: number | null
           lng: number | null
           location_name: string | null
+          max_players: number | null
           play_mode: Database["public"]["Enums"]["play_mode_type"]
           project_id: string
+          start_level: number | null
           status: Database["public"]["Enums"]["campaign_status_type"]
+          style_tags: string[] | null
           system: string
+          timezone: string | null
           title: string
           user_id: string
+          virtual_platform: string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -1130,7 +1173,15 @@ export type Database = {
     }
     Enums: {
       campaign_status_type: "recruiting" | "active" | "full" | "completed"
+      frequency_type: "weekly" | "biweekly" | "monthly" | "irregular"
       play_mode_type: "remote" | "in_person" | "hybrid"
+      virtual_platform_type:
+        | "discord"
+        | "roll20"
+        | "foundry"
+        | "google_meet"
+        | "tabletop_simulator"
+        | "other"
     }
     CompositeTypes: {
       geometry_dump: {
@@ -1267,7 +1318,16 @@ export const Constants = {
   public: {
     Enums: {
       campaign_status_type: ["recruiting", "active", "full", "completed"],
+      frequency_type: ["weekly", "biweekly", "monthly", "irregular"],
       play_mode_type: ["remote", "in_person", "hybrid"],
+      virtual_platform_type: [
+        "discord",
+        "roll20",
+        "foundry",
+        "google_meet",
+        "tabletop_simulator",
+        "other",
+      ],
     },
   },
 } as const

@@ -31,7 +31,7 @@ const PLACEHOLDER = 'https://placehold.co/600x340/1e174a/9fa7ff?text=Sin+imagen'
 <template>
   <NuxtLink
     :to="`/campaigns/${campaign.id}`"
-    class="card group flex flex-col overflow-hidden"
+    class="card group flex flex-col overflow-hidden card-hoverable"
   >
     <!-- ── Imagen ── -->
     <div class="relative h-48 overflow-hidden shrink-0">

@@ -106,9 +106,9 @@ function onRadiusChange(event: Event) {
         </button>
 
         <!-- Radio selector cuando está activo -->
-        <Transition name="fade">
+        <Transition name="fade" v-if="nearby">
           <USelect
-            v-if="nearby"
+            key="nearby-radius"
             :model-value="radius"
             :items="radiusOptions"
             value-key="value"

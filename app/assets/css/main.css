@@ -141,7 +141,7 @@ h1, h2, h3, h4, h5, h6 {
   transition:    background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.card:hover {
+.card-hoverable:hover {
   background:  var(--color-surface-bright);
   transform:   translateY(-4px);
   box-shadow:  var(--shadow-card-hover);

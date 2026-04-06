@@ -3,7 +3,9 @@ import { useSupabaseClient } from '#imports'
 import type { Database } from '@/types/database.types'
 import type { CampaignForm } from '~/schemas/campaign'
 
-type Campaign = Database['public']['Tables']['campaigns']['Row']
+type Campaign = Omit<Database['public']['Tables']['campaigns']['Row'], 'house_rules'> & {
+  house_rules: unknown | null
+}
 type CampaignInsert = Database['public']['Tables']['campaigns']['Insert']
 type Project = Database['public']['Tables']['projects']['Row']
 
@@ -18,6 +20,14 @@ function distanceKm(lat1: number, lng1: number, lat2: number, lng2: number): num
       Math.cos((lat2 * Math.PI) / 180) *
       Math.sin(dO / 2) ** 2
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+function campaignMatchesSearch(campaign: Campaign, q: string): boolean {
+  return (
+    campaign.title.toLowerCase().includes(q) ||
+    campaign.system.toLowerCase().includes(q) ||
+    (campaign.description?.toLowerCase().includes(q) ?? false)
+  )
 }
 
 interface CampaignStoreState {
@@ -118,11 +128,7 @@ export const useCampaignStore = defineStore('campaign', {
       // Search filter
       if (this.searchQuery.trim()) {
         const q = this.searchQuery.toLowerCase()
-        list = list.filter(c =>
-          c.title.toLowerCase().includes(q) ||
-          c.system.toLowerCase().includes(q) ||
-          c.description?.toLowerCase().includes(q)
-        )
+        list = list.filter(c => campaignMatchesSearch(c, q))
       }
 
       // Mode filter
