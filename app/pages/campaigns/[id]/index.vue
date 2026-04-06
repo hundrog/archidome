@@ -179,7 +179,7 @@ const safeImageUrl = computed(() => {
             <p
               class="text-primary-400 font-medium uppercase tracking-widest text-sm"
             >
-              {{ campaign.description }}
+              {{ campaign.hook }}
             </p>
           </div>
         </div>

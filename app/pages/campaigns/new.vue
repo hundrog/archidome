@@ -109,7 +109,7 @@ async function onSubmit() {
       house_rules: campaignStore.form.house_rules || [],
       project_id: campaignStore.form.project_id || "",
       image_url: imageUrl,
-      user_id: user.value!.id,
+      user_id: user.value!.sub,
     };
 
     const { data, error } = await supabase
