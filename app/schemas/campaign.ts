@@ -16,6 +16,8 @@ export const campaignSchema = z.object({
   timezone:         z.string().optional(),
   duration:         z.string().optional(),
   location_name:    z.string().optional(),
+  lat:              z.number().nullable().default(null),
+  lng:              z.number().nullable().default(null),
 
   // Rules
   max_players:  z.number().int().min(1).max(20).default(4),
@@ -46,6 +48,8 @@ export const portalSchema = z.object({
   timezone:         z.string().optional(),
   duration:         z.string().optional(),
   location_name:    z.string().optional(),
+  lat:              z.number().nullable().default(null),
+  lng:              z.number().nullable().default(null),
 })
 
 export const rulesSchema = z.object({

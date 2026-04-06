@@ -43,7 +43,7 @@ const frequencyLabel: Record<string, string> = {
 
 const summaryItems = computed(() => [
   { icon: 'i-lucide-scroll',      label: 'Sistema',    value: campaignStore.form.system },
-  { icon: 'i-lucide-monitor',     label: 'Modo',       value: playModeLabel[campaignStore.form.play_mode] ?? campaignStore.form.play_mode },
+  { icon: 'i-lucide-monitor',     label: 'Modo',       value: campaignStore.form.play_mode ? playModeLabel[campaignStore.form.play_mode] : '—' },
   { icon: 'i-lucide-users',       label: 'Jugadores',  value: `${campaignStore.form.max_players} máximo` },
   { icon: 'i-lucide-swords',      label: 'Nivel',      value: `Nivel ${campaignStore.form.start_level}` },
   { icon: 'i-lucide-calendar',    label: 'Frecuencia', value: campaignStore.form.frequency ? frequencyLabel[campaignStore.form.frequency] : '—' },

@@ -6,10 +6,12 @@ const campaignStore = useCampaignStore()
 
 // ─── Jugadores ────────────────────────────────────────────────────────────────
 function decrement(field: 'max_players' | 'start_level', min: number) {
-  if (campaignStore.form[field] > min) campaignStore.form[field]--
+  const val = campaignStore.form[field] as number
+  if (val > min) campaignStore.form[field] = val - 1
 }
 function increment(field: 'max_players' | 'start_level', max: number) {
-  if (campaignStore.form[field] < max) campaignStore.form[field]++
+  const val = campaignStore.form[field] as number
+  if (val < max) campaignStore.form[field] = val + 1
 }
 
 // ─── Style tags ───────────────────────────────────────────────────────────────
@@ -23,15 +25,17 @@ const PRESET_TAGS = [
 const customTag = ref('')
 
 function toggleTag(tag: string) {
-  const idx = campaignStore.form.style_tags.indexOf(tag)
-  if (idx === -1) campaignStore.form.style_tags.push(tag)
-  else campaignStore.form.style_tags.splice(idx, 1)
+  const tags = campaignStore.form.style_tags as string[]
+  const idx = tags.indexOf(tag)
+  if (idx === -1) tags.push(tag)
+  else tags.splice(idx, 1)
 }
 
 function addCustomTag() {
   const tag = customTag.value.trim()
-  if (!tag || campaignStore.form.style_tags.includes(tag)) return
-  campaignStore.form.style_tags.push(tag)
+  const tags = campaignStore.form.style_tags as string[]
+  if (!tag || tags.includes(tag)) return
+  tags.push(tag)
   customTag.value = ''
 }
 
@@ -40,13 +44,15 @@ const newRule = reactive({ title: '', description: '' })
 
 function addRule() {
   if (!newRule.title.trim()) return
-  campaignStore.form.house_rules.push({ title: newRule.title.trim(), description: newRule.description.trim() })
+  const rules = campaignStore.form.house_rules as { title: string; description: string }[]
+  rules.push({ title: newRule.title.trim(), description: newRule.description.trim() })
   newRule.title       = ''
   newRule.description = ''
 }
 
 function removeRule(idx: number) {
-  campaignStore.form.house_rules.splice(idx, 1)
+  const rules = campaignStore.form.house_rules as { title: string; description: string }[]
+  rules.splice(idx, 1)
 }
 </script>
 
@@ -121,10 +127,10 @@ function removeRule(idx: number) {
           :key="tag"
           type="button"
           class="px-3 py-1.5 rounded-md font-body text-label-md transition-all"
-          :class="campaignStore.form.style_tags.includes(tag)
+          :class="(campaignStore.form.style_tags as string[]).includes(tag)
             ? 'bg-secondary-container text-secondary-on'
             : 'bg-surface-high text-on-surface-dim hover:bg-surface-bright'"
-          :style="campaignStore.form.style_tags.includes(tag)
+          :style="(campaignStore.form.style_tags as string[]).includes(tag)
             ? { background: '#62259b', color: '#e4c4ff' }
             : {}"
           @click="toggleTag(tag)"
@@ -155,7 +161,7 @@ function removeRule(idx: number) {
       </div>
 
       <!-- Tags seleccionados -->
-      <div v-if="campaignStore.form.style_tags.length" class="flex flex-wrap gap-2">
+      <div v-if="(campaignStore.form.style_tags as string[]).length" class="flex flex-wrap gap-2">
         <span
           v-for="tag in campaignStore.form.style_tags"
           :key="tag"

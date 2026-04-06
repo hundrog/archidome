@@ -23,8 +23,8 @@ const systemSuggestions = [
 
 const showSuggestions  = ref(false)
 const filteredSystems  = computed(() =>
-  state.system
-    ? systemSuggestions.filter(s => s.toLowerCase().includes(state.system.toLowerCase()))
+  campaignStore.form.system
+    ? systemSuggestions.filter(s => s.toLowerCase().includes(campaignStore.form.system?.toLowerCase() ?? ''))
     : systemSuggestions
 )
 

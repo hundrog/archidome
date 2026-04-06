@@ -113,10 +113,9 @@ const showLocation = computed(() =>
     <Transition name="fade">
       <CampaignLocationField
         v-if="showLocation"
-        :initial-location-name="campaignStore.form.location_name"
-        :initial-lat="campaignStore.form.lat"
-        :initial-lng="campaignStore.form.lng"
-        @update="(data) => campaignStore.setLocation(data.locationName, { lat: data.lat, lng: data.lng })"
+        :initial-location="campaignStore.form.location_name"
+        :initial-coords="campaignStore.form.lat && campaignStore.form.lng ? { lat: campaignStore.form.lat, lng: campaignStore.form.lng } : null"
+        @update="(data) => campaignStore.setLocation(data.locationName, data.lat && data.lng ? { lat: data.lat, lng: data.lng } : null)"
       />
     </Transition>
 

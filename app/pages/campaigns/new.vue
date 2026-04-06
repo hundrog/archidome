@@ -49,12 +49,12 @@ function validateCurrentTab(): boolean {
 function nextTab() {
   if (!validateCurrentTab()) return
   const idx = tabs.findIndex(t => t.slot === currentTab.value)
-  if (idx < tabs.length - 1) currentTab.value = tabs[idx + 1].slot
+  if (idx !== -1 && idx < tabs.length - 1) currentTab.value = tabs[idx + 1]!.slot
 }
 
 function prevTab() {
   const idx = tabs.findIndex(t => t.slot === currentTab.value)
-  if (idx > 0) currentTab.value = tabs[idx - 1].slot
+  if (idx !== -1 && idx > 0) currentTab.value = tabs[idx - 1]!.slot
 }
 
 const isLastTab  = computed(() => currentTab.value === 'house')
@@ -75,11 +75,11 @@ async function onSubmit() {
     if (campaignStore.imageFile) imageUrl = await campaignStore.uploadImage(campaignStore.imageFile)
 
     const payload = {
-      title:            campaignStore.form.title,
-      system:           campaignStore.form.system,
-      hook:             campaignStore.form.hook,
-      description:      campaignStore.form.description,
-      play_mode:        campaignStore.form.play_mode,
+      title:            campaignStore.form.title || '',
+      system:           campaignStore.form.system || '',
+      hook:             campaignStore.form.hook || '',
+      description:      campaignStore.form.description || '',
+      play_mode:        campaignStore.form.play_mode || 'remote',
       virtual_platform: campaignStore.form.virtual_platform,
       frequency:        campaignStore.form.frequency,
       language:         campaignStore.form.language,
@@ -88,11 +88,11 @@ async function onSubmit() {
       location_name:    campaignStore.form.location_name,
       lat:              campaignStore.form.lat,
       lng:              campaignStore.form.lng,
-      max_players:      campaignStore.form.max_players,
-      start_level:      campaignStore.form.start_level,
-      style_tags:       campaignStore.form.style_tags,
-      house_rules:      campaignStore.form.house_rules,
-      project_id:       campaignStore.form.project_id,
+      max_players:      campaignStore.form.max_players || 4,
+      start_level:      campaignStore.form.start_level || 1,
+      style_tags:       campaignStore.form.style_tags || [],
+      house_rules:      campaignStore.form.house_rules || [],
+      project_id:       campaignStore.form.project_id || '',
       image_url:        imageUrl,
       user_id:          user.value!.id,
     }
