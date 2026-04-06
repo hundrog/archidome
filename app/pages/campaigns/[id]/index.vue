@@ -6,12 +6,6 @@ import { useCampaignStore } from '~/stores/campaign'
 type CampaignWithProject = Database['public']['Tables']['campaigns']['Row'] & {
   projects?: { name: string }
 }
-// ─── Config ───────────────────────────────────────────────────────────────────
-const playModeConfig = {
-  remote: { label: "Remoto", icon: "i-lucide-monitor", color: "info" },
-  in_person: { label: "Presencial", icon: "i-lucide-users", color: "success" },
-  hybrid: { label: "Híbrido", icon: "i-lucide-shuffle", color: "warning" },
-} as const
 
 // ─── Setup ────────────────────────────────────────────────────────────────────
 const route = useRoute()
@@ -101,7 +95,7 @@ const safeImageUrl = computed(() => {
     <!-- ── Loading ── -->
     <div
       v-if="pending"
-      class="max-w-4xl mx-auto px-4 py-12 space-y-6 animate-pulse"
+      class="w-full mx-auto px-4 py-12 space-y-6 animate-pulse"
     >
       <div class="h-72 rounded-2xl bg-gray-800" />
       <div class="h-8 bg-gray-800 rounded w-2/3" />
@@ -115,17 +109,21 @@ const safeImageUrl = computed(() => {
 
     <template v-else-if="campaign">
       <!-- ── Hero imagen ── -->
-      <div class="relative w-full h-72 sm:h-96 overflow-hidden bg-surface">
+      <section
+      class="relative min-h-130 flex flex-col items-center justify-center px-4 overflow-hidden"
+    >
+      <!-- Fondo -->
+      <div class="absolute inset-0 z-0">
         <img
           v-if="safeImageUrl"
           :src="safeImageUrl"
           :alt="campaign.title"
           class="w-full h-full object-cover"
         />
-        <div
-          class="absolute inset-0 bg-linear-to-t from-surface via-surface/40 to-transparent"
-        />
-
+        <!-- Overlay oscuro -->
+        <div class="absolute inset-0 bg-surface/60" />
+        <!-- Gradiente hacia abajo -->
+        <div class="absolute bottom-0 left-0 right-0 h-48 bg-linear-to-t from-surface to-transparent" />
         <!-- Botón volver -->
         <div class="absolute top-4 left-4 lg:top-12 lg:left-12">
           <UButton
@@ -139,111 +137,61 @@ const safeImageUrl = computed(() => {
         </div>
 
         <!-- Acciones dueño -->
-        <div v-if="isOwner" class="absolute top-4 right-4 lg:top-12 lg:right-12 flex gap-2">
+        <div v-if="isOwner" class="absolute bottom-4 right-4 lg:bottom-12 lg:right-12 flex gap-2">
           <UButton
             :to="`/campaigns/${id}/edit`"
             icon="i-lucide-pencil"
             size="xl"
-            variant="solid"
-            color="neutral"
+            variant="ghost"
+            color="primary"
             class="rounded-full z-10"
           />
           <UButton
             icon="i-lucide-trash-2"
             size="xl"
-            variant="solid"
+            variant="ghost"
             color="error"
             class="rounded-full z-10"
             @click="showDeleteModal = true"
           />
         </div>
       </div>
+      <!-- Título + badges -->
+       <div class="absolute bottom-4 left-4 flex flex-col">
+         <div class="space-y-3">
+           <div class="flex flex-wrap gap-2 items-center">
+             <UBadge
+              color="primary"
+              variant="subtle"
+              :label="campaign.system"
+             />
+           </div>
+   
+           <h1 class="text-3xl sm:text-4xl font-bold text-white leading-tight">
+             {{ campaign.title }}
+           </h1>
+   
+           <p
+             class="text-primary-400 font-medium uppercase tracking-widest text-sm"
+           >
+             {{ campaign.description }}
+           </p>
+         </div>
+       </div>
+      </section>
 
       <!-- ── Contenido ── -->
-      <div class="max-w-4xl mx-auto px-4 py-10 space-y-8">
-        <!-- Título + badges -->
-        <div class="space-y-3">
-          <div class="flex flex-wrap gap-2 items-center">
-            <UBadge
-              :color="playModeConfig[campaign.play_mode].color"
-              variant="solid"
-              :label="playModeConfig[campaign.play_mode].label"
-            >
-              <template #leading>
-                <UIcon
-                  :name="playModeConfig[campaign.play_mode].icon"
-                  class="size-3"
-                />
-              </template>
-            </UBadge>
-            <UBadge
-              v-if="campaign.projects?.name"
-              color="neutral"
-              variant="subtle"
-              :label="campaign.projects.name"
-            >
-              <template #leading>
-                <UIcon name="i-lucide-folder" class="size-3" />
-              </template>
-            </UBadge>
-          </div>
+      <div class="grid grid-cols-4 gap-1 lg:gap-8">
+      <div class="col-span-3">
+      </div>
+      <div class="col-span-1">
+        <div class="card p-4 lg:p-6">
+          <h4 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+            Scheduling
+          </h4>
 
-          <h1 class="text-3xl sm:text-4xl font-bold text-white leading-tight">
-            {{ campaign.title }}
-          </h1>
-
-          <p
-            class="text-primary-400 font-medium uppercase tracking-widest text-sm"
-          >
-            {{ campaign.system }}
-          </p>
         </div>
-
-        <USeparator />
-
-        <!-- Descripción -->
-        <div class="space-y-2">
-          <h2
-            class="text-sm font-semibold text-gray-400 uppercase tracking-wider"
-          >
-            Descripción
-          </h2>
-          <p class="text-gray-300 leading-relaxed whitespace-pre-line">
-            {{ campaign.description }}
-          </p>
-        </div>
-
-        <USeparator />
-
-        <!-- Contacto -->
-        <div class="space-y-2">
-          <h2
-            class="text-sm font-semibold text-gray-400 uppercase tracking-wider"
-          >
-            ¿Cómo unirme?
-          </h2>
-          <div
-            class="flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-xl px-4 py-3"
-          >
-            <UIcon
-              name="i-lucide-message-circle"
-              class="size-5 text-primary-400 shrink-0"
-            />
-            <span class="text-gray-200">{{ campaign.contact }}</span>
-          </div>
-        </div>
-
-        <!-- Fecha -->
-        <p class="text-xs text-gray-600 pt-2">
-          Publicada el
-          {{
-            new Date(campaign.created_at).toLocaleDateString("es-MX", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })
-          }}
-        </p>
+      </div>
       </div>
     </template>
 
