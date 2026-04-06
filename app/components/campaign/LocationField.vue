@@ -3,90 +3,94 @@
 
 // ─── Emits ────────────────────────────────────────────────────────────────────
 const emit = defineEmits<{
-  update: [payload: { lat: number | null; lng: number | null; locationName: string }]
-}>()
+  update: [
+    payload: { lat: number | null; lng: number | null; locationName: string },
+  ];
+}>();
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 const props = defineProps<{
-  initialLocation?: string | null
-  initialCoords?: { lat: number; lng: number } | null
-}>()
+  initialLocation?: string | null;
+  initialCoords?: { lat: number; lng: number } | null;
+}>();
 
 // ─── Setup ────────────────────────────────────────────────────────────────────
-const toast                                          = useToast()
-const { geocode, loading: geocoding, error: geocodeError } = useGeocoder()
-const { fuzzCoords }                                 = useFuzzCoords()
-const { coords, request: requestGeo, loading: geoLoading } = useGeolocation()
+const toast = useToast();
+const { geocode, loading: geocoding, error: geocodeError } = useGeocoder();
+const { fuzzCoords } = useFuzzCoords();
+const { coords, request: requestGeo, loading: geoLoading } = useGeolocation();
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
-const locationName   = ref(props.initialLocation ?? '')
-const resolvedCoords = ref<{ lat: number; lng: number } | null>(props.initialCoords ?? null)
+const locationName = ref(props.initialLocation ?? "");
+const resolvedCoords = ref<{ lat: number; lng: number } | null>(
+  props.initialCoords ?? null,
+);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function emitUpdate(lat: number | null, lng: number | null, name: string ) {
-  emit('update', { lat, lng, locationName: name })
+function emitUpdate(lat: number | null, lng: number | null, name: string) {
+  emit("update", { lat, lng, locationName: name });
 }
 
 function clearLocation() {
-  resolvedCoords.value = null
-  emitUpdate(null, null, '')
+  resolvedCoords.value = null;
+  emitUpdate(null, null, "");
 }
 
 // ─── Geocodificar al salir del campo ─────────────────────────────────────────
 async function onBlur() {
   if (!locationName.value.trim()) {
-    clearLocation()
-    return
+    clearLocation();
+    return;
   }
 
-  const result = await geocode(locationName.value)
+  const result = await geocode(locationName.value);
   if (result) {
-    const fuzzed = fuzzCoords(result.lat, result.lng)
-    resolvedCoords.value = fuzzed
-    emitUpdate(fuzzed.lat, fuzzed.lng, locationName.value)
+    const fuzzed = fuzzCoords(result.lat, result.lng);
+    resolvedCoords.value = fuzzed;
+    emitUpdate(fuzzed.lat, fuzzed.lng, locationName.value);
     toast.add({
-      title:       '📍 Ubicación encontrada',
-      description: result.displayName.split(',').slice(0, 3).join(','),
-      color:       'success'
-    })
+      title: "📍 Ubicación encontrada",
+      description: result.displayName.split(",").slice(0, 3).join(","),
+      color: "success",
+    });
   } else {
-    clearLocation()
+    clearLocation();
     toast.add({
-      title:       'Ubicación no encontrada',
+      title: "Ubicación no encontrada",
       description: 'Intenta ser más específico (ej: "Guadalajara, Jalisco")',
-      color:       'warning'
-    })
+      color: "warning",
+    });
   }
 }
 
 // ─── Usar ubicación del navegador ────────────────────────────────────────────
 async function useMyLocation() {
-  await requestGeo()
+  await requestGeo();
 
   if (!coords.value) {
-    toast.add({ title: 'No se pudo obtener tu ubicación', color: 'error' })
-    return
+    toast.add({ title: "No se pudo obtener tu ubicación", color: "error" });
+    return;
   }
 
-  const fuzzed = fuzzCoords(coords.value.lat, coords.value.lng)
-  resolvedCoords.value = fuzzed
+  const fuzzed = fuzzCoords(coords.value.lat, coords.value.lng);
+  resolvedCoords.value = fuzzed;
 
   const data = await $fetch<{ found: boolean; locationName: string | null }>(
-    '/api/reverse-geocode',
-    { query: { lat: fuzzed.lat, lng: fuzzed.lng } }
-  )
+    "/api/reverse-geocode",
+    { query: { lat: fuzzed.lat, lng: fuzzed.lng } },
+  );
 
   if (data.found && data.locationName) {
-    locationName.value = data.locationName
-    emitUpdate(fuzzed.lat, fuzzed.lng, data.locationName)
+    locationName.value = data.locationName;
+    emitUpdate(fuzzed.lat, fuzzed.lng, data.locationName);
     toast.add({
-      title:       '📍 Ubicación guardada',
+      title: "📍 Ubicación guardada",
       description: data.locationName,
-      color:       'success'
-    })
+      color: "success",
+    });
   } else {
-    emitUpdate(fuzzed.lat, fuzzed.lng, '')
-    toast.add({ title: 'No se pudo resolver la ciudad', color: 'warning' })
+    emitUpdate(fuzzed.lat, fuzzed.lng, "");
+    toast.add({ title: "No se pudo resolver la ciudad", color: "warning" });
   }
 }
 </script>
@@ -95,7 +99,11 @@ async function useMyLocation() {
   <UFormField
     label="Ciudad / Ubicación"
     name="location_name"
-    :hint="resolvedCoords ? '✅ Ubicación verificada' : 'Escribe tu ciudad o usa tu ubicación actual'"
+    :hint="
+      resolvedCoords
+        ? '✅ Ubicación verificada'
+        : 'Escribe tu ciudad o usa tu ubicación actual'
+    "
   >
     <div class="flex gap-2">
       <UInput
@@ -116,6 +124,8 @@ async function useMyLocation() {
         @click="useMyLocation"
       />
     </div>
-    <p v-if="geocodeError" class="text-xs text-red-400 mt-1">{{ geocodeError }}</p>
+    <p v-if="geocodeError" class="text-xs text-red-400 mt-1">
+      {{ geocodeError }}
+    </p>
   </UFormField>
 </template>

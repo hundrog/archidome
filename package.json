@@ -22,6 +22,7 @@
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.101",
     "@iconify-json/simple-icons": "^1.2.76",
+    "prettier": "3.8.1",
     "supabase": "^2.84.6"
   }
 }

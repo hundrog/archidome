@@ -34,27 +34,27 @@ const radiusOptions = [
 ];
 
 function onModeChange(event: Event) {
-  const val = (event.target as HTMLSelectElement).value
-  emit('update:mode', val === '' ? null : val)
+  const val = (event.target as HTMLSelectElement).value;
+  emit("update:mode", val === "" ? null : val);
 }
 
 function onSearchInput(event: Event) {
-  emit('update:search', (event.target as HTMLInputElement).value)
+  emit("update:search", (event.target as HTMLInputElement).value);
 }
 
 function onRadiusChange(event: Event) {
-  emit('update:radius', Number((event.target as HTMLSelectElement).value))
+  emit("update:radius", Number((event.target as HTMLSelectElement).value));
 }
 </script>
 
 <template>
   <div class="w-full mx-auto">
     <!-- ── Contenedor glass ── -->
-    <div
-      class="glass ghost-border rounded-xl p-1.5 gap-1 grid grid-cols-8"
-    >
+    <div class="glass ghost-border rounded-xl p-1.5 gap-1 grid grid-cols-8">
       <!-- Búsqueda por texto -->
-      <div class="flex items-center gap-3 flex-1 px-4 py-2 col-span-8 lg:col-span-4">
+      <div
+        class="flex items-center gap-3 flex-1 px-4 py-2 col-span-8 lg:col-span-4"
+      >
         <UIcon
           name="i-lucide-search"
           class="size-4 shrink-0 text-on-surface-dim"
@@ -69,7 +69,9 @@ function onRadiusChange(event: Event) {
       </div>
 
       <!-- Modo de juego -->
-      <div class="flex items-center gap-1 px-4 py-2 col-span-4 lg:col-span-2 lg:gap-3">
+      <div
+        class="flex items-center gap-1 px-4 py-2 col-span-4 lg:col-span-2 lg:gap-3"
+      >
         <UIcon
           name="i-lucide-layout-grid"
           class="size-4 shrink-0 text-on-surface-dim"
@@ -83,12 +85,14 @@ function onRadiusChange(event: Event) {
           size="md"
           class="flex-1 bg-transparent text-on-surface text-body-md outline-none font-body cursor-pointer"
           placeholder="Todos los modos"
-          @update:model-value="val => emit('update:mode', val)"
+          @update:model-value="(val) => emit('update:mode', val)"
         />
       </div>
 
       <!-- Cercanía -->
-      <div class="flex items-center gap-1 px-4 py-2 col-span-4 lg:col-span-2 lg:gap-3">
+      <div
+        class="flex items-center gap-1 px-4 py-2 col-span-4 lg:col-span-2 lg:gap-3"
+      >
         <UIcon
           :name="nearby ? 'i-lucide-map-pin' : 'i-lucide-map-pin-off'"
           class="size-4 shrink-0"
@@ -115,7 +119,7 @@ function onRadiusChange(event: Event) {
             label-key="label"
             size="md"
             class="bg-transparent text-primary text-label-md outline-none font-body cursor-pointer"
-            @update:model-value="val => emit('update:radius', val)"
+            @update:model-value="(val) => emit('update:radius', val)"
           />
         </Transition>
       </div>

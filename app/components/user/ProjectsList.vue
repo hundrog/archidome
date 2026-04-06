@@ -3,143 +3,160 @@
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 interface Project {
-  id:         string
-  name:       string
-  user_id:    string
-  created_at: string
+  id: string;
+  name: string;
+  user_id: string;
+  created_at: string;
 }
 
 // ─── Setup ────────────────────────────────────────────────────────────────────
-const supabase = useSupabaseClient()
-const user     = useSupabaseUser()
-const toast    = useToast()
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
+const toast = useToast();
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
-const projects      = ref<Project[]>([])
-const loading       = ref(false)
-const newName       = ref('')
-const creating      = ref(false)
-const editingId     = ref<string | null>(null)
-const editingName   = ref('')
-const deletingId    = ref<string | null>(null)
-const showDeleteModal = ref(false)
-const projectToDelete = ref<Project | null>(null)
+const projects = ref<Project[]>([]);
+const loading = ref(false);
+const newName = ref("");
+const creating = ref(false);
+const editingId = ref<string | null>(null);
+const editingName = ref("");
+const deletingId = ref<string | null>(null);
+const showDeleteModal = ref(false);
+const projectToDelete = ref<Project | null>(null);
 
 // ─── Fetch ────────────────────────────────────────────────────────────────────
 async function fetchProjects() {
-  loading.value = true
+  loading.value = true;
   try {
     const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .eq('user_id', user.value!.sub)
-      .order('created_at', { ascending: true })
+      .from("projects")
+      .select("*")
+      .eq("user_id", user.value!.sub)
+      .order("created_at", { ascending: true });
 
-    if (error) throw error
-    projects.value = data ?? []
+    if (error) throw error;
+    projects.value = data ?? [];
   } catch (err: any) {
-    toast.add({ title: 'Error al cargar proyectos', description: err.message, color: 'error' })
+    toast.add({
+      title: "Error al cargar proyectos",
+      description: err.message,
+      color: "error",
+    });
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
-await fetchProjects()
+await fetchProjects();
 
 // ─── Crear ────────────────────────────────────────────────────────────────────
 async function createProject() {
-  if (!newName.value.trim()) return
-  creating.value = true
+  if (!newName.value.trim()) return;
+  creating.value = true;
   try {
     const { data, error } = await supabase
-      .from('projects')
+      .from("projects")
       .insert({ name: newName.value.trim(), user_id: user.value!.id })
       .select()
-      .single()
+      .single();
 
-    if (error) throw error
+    if (error) throw error;
 
-    projects.value.push(data)
-    newName.value = ''
-    toast.add({ title: 'Proyecto creado', color: 'success' })
+    projects.value.push(data);
+    newName.value = "";
+    toast.add({ title: "Proyecto creado", color: "success" });
   } catch (err: any) {
-    toast.add({ title: 'Error al crear', description: err.message, color: 'error' })
+    toast.add({
+      title: "Error al crear",
+      description: err.message,
+      color: "error",
+    });
   } finally {
-    creating.value = false
+    creating.value = false;
   }
 }
 
 // ─── Editar inline ────────────────────────────────────────────────────────────
 function startEdit(project: Project) {
-  editingId.value   = project.id
-  editingName.value = project.name
+  editingId.value = project.id;
+  editingName.value = project.name;
 }
 
 function cancelEdit() {
-  editingId.value   = null
-  editingName.value = ''
+  editingId.value = null;
+  editingName.value = "";
 }
 
 async function saveEdit(project: Project) {
   if (!editingName.value.trim() || editingName.value === project.name) {
-    cancelEdit()
-    return
+    cancelEdit();
+    return;
   }
 
   try {
     const { error } = await supabase
-      .from('projects')
+      .from("projects")
       .update({ name: editingName.value.trim() })
-      .eq('id', project.id)
+      .eq("id", project.id);
 
-    if (error) throw error
+    if (error) throw error;
 
-    project.name    = editingName.value.trim()
-    cancelEdit()
-    toast.add({ title: 'Proyecto actualizado', color: 'success' })
+    project.name = editingName.value.trim();
+    cancelEdit();
+    toast.add({ title: "Proyecto actualizado", color: "success" });
   } catch (err: any) {
-    toast.add({ title: 'Error al actualizar', description: err.message, color: 'error' })
+    toast.add({
+      title: "Error al actualizar",
+      description: err.message,
+      color: "error",
+    });
   }
 }
 
 function onEditKeydown(event: KeyboardEvent, project: Project) {
-  if (event.key === 'Enter')  saveEdit(project)
-  if (event.key === 'Escape') cancelEdit()
+  if (event.key === "Enter") saveEdit(project);
+  if (event.key === "Escape") cancelEdit();
 }
 
 // ─── Eliminar ─────────────────────────────────────────────────────────────────
 function confirmDelete(project: Project) {
-  projectToDelete.value = project
-  showDeleteModal.value = true
+  projectToDelete.value = project;
+  showDeleteModal.value = true;
 }
 
 async function deleteProject() {
-  if (!projectToDelete.value) return
-  deletingId.value = projectToDelete.value.id
+  if (!projectToDelete.value) return;
+  deletingId.value = projectToDelete.value.id;
 
   try {
     const { error } = await supabase
-      .from('projects')
+      .from("projects")
       .delete()
-      .eq('id', projectToDelete.value.id)
+      .eq("id", projectToDelete.value.id);
 
-    if (error) throw error
+    if (error) throw error;
 
-    projects.value    = projects.value.filter(p => p.id !== projectToDelete.value!.id)
-    showDeleteModal.value = false
-    projectToDelete.value = null
-    toast.add({ title: 'Proyecto eliminado', color: 'success' })
+    projects.value = projects.value.filter(
+      (p) => p.id !== projectToDelete.value!.id,
+    );
+    showDeleteModal.value = false;
+    projectToDelete.value = null;
+    toast.add({ title: "Proyecto eliminado", color: "success" });
   } catch (err: any) {
-    toast.add({ title: 'Error al eliminar', description: err.message, color: 'error' })
+    toast.add({
+      title: "Error al eliminar",
+      description: err.message,
+      color: "error",
+    });
   } finally {
-    deletingId.value = null
+    deletingId.value = null;
   }
 }
 </script>
 
 <template>
   <div class="space-y-6">
-
     <!-- ── Crear nuevo proyecto ── -->
     <div class="space-y-2">
       <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">
@@ -174,31 +191,28 @@ async function deleteProject() {
 
       <!-- Loading -->
       <div v-if="loading" class="space-y-2">
-        <div v-for="n in 3" :key="n" class="h-14 rounded-xl bg-gray-800 animate-pulse" />
+        <div
+          v-for="n in 3"
+          :key="n"
+          class="h-14 rounded-xl bg-gray-800 animate-pulse"
+        />
       </div>
 
       <!-- Empty -->
       <div
         v-else-if="!projects.length"
-        class="flex flex-col items-center justify-center py-12 gap-3 text-center
-               rounded-xl border-2 border-dashed border-gray-800"
+        class="flex flex-col items-center justify-center py-12 gap-3 text-center rounded-xl border-2 border-dashed border-gray-800"
       >
         <UIcon name="i-lucide-folder" class="size-10 text-gray-700" />
         <p class="text-sm text-gray-500">No tienes proyectos todavía</p>
       </div>
 
       <!-- Items -->
-      <TransitionGroup
-        v-else
-        name="list"
-        tag="div"
-        class="space-y-2"
-      >
+      <TransitionGroup v-else name="list" tag="div" class="space-y-2">
         <div
           v-for="project in projects"
           :key="project.id"
-          class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-900
-                 border border-gray-800 hover:border-gray-700 transition-colors"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-900 border border-gray-800 hover:border-gray-700 transition-colors"
         >
           <UIcon name="i-lucide-folder" class="size-4 text-gray-500 shrink-0" />
 
@@ -260,7 +274,6 @@ async function deleteProject() {
         </div>
       </TransitionGroup>
     </div>
-
   </div>
 
   <!-- ── Modal eliminar ── -->
@@ -276,12 +289,16 @@ async function deleteProject() {
 
         <p class="text-sm text-gray-400">
           ¿Eliminar
-          <span class="text-white font-medium">{{ projectToDelete?.name }}</span>?
-          Las campañas asociadas también serán eliminadas.
+          <span class="text-white font-medium">{{ projectToDelete?.name }}</span
+          >? Las campañas asociadas también serán eliminadas.
         </p>
 
         <div class="flex justify-end gap-3 pt-2">
-          <UButton variant="ghost" label="Cancelar" @click="showDeleteModal = false" />
+          <UButton
+            variant="ghost"
+            label="Cancelar"
+            @click="showDeleteModal = false"
+          />
           <UButton
             color="error"
             icon="i-lucide-trash-2"
@@ -296,7 +313,16 @@ async function deleteProject() {
 </template>
 
 <style scoped>
-.list-enter-active, .list-leave-active { transition: all 0.2s ease; }
-.list-enter-from { opacity: 0; transform: translateY(-8px); }
-.list-leave-to   { opacity: 0; transform: translateX(8px); }
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.2s ease;
+}
+.list-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(8px);
+}
 </style>

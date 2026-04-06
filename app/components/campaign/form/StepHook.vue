@@ -1,46 +1,49 @@
 <!-- components/campaign/form/StepHook.vue -->
 <script setup lang="ts">
-import { hookSchema } from '@/schemas/campaign';
+import { hookSchema } from "@/schemas/campaign";
 
-const campaignStore = useCampaignStore()
+const campaignStore = useCampaignStore();
 
-const hookLength = computed(() => campaignStore.form.hook?.length ?? 0)
-const descLength = computed(() => campaignStore.form.description?.length ?? 0)
+const hookLength = computed(() => campaignStore.form.hook?.length ?? 0);
+const descLength = computed(() => campaignStore.form.description?.length ?? 0);
 
 // Sistemas populares para sugerencias
 const systemSuggestions = [
-  'Dungeons & Dragons 5e',
-  'Pathfinder 2e',
-  'Fabula Ultima',
-  'Call of Cthulhu',
-  'Vampire: The Masquerade',
-  'Blades in the Dark',
-  'Ironsworn',
-  'Savage Worlds',
-  'Mothership',
-  'Trophy Gold',
-]
+  "Dungeons & Dragons 5e",
+  "Pathfinder 2e",
+  "Fabula Ultima",
+  "Call of Cthulhu",
+  "Vampire: The Masquerade",
+  "Blades in the Dark",
+  "Ironsworn",
+  "Savage Worlds",
+  "Mothership",
+  "Trophy Gold",
+];
 
-const showSuggestions  = ref(false)
-const filteredSystems  = computed(() =>
+const showSuggestions = ref(false);
+const filteredSystems = computed(() =>
   campaignStore.form.system
-    ? systemSuggestions.filter(s => s.toLowerCase().includes(campaignStore.form.system?.toLowerCase() ?? ''))
-    : systemSuggestions
-)
+    ? systemSuggestions.filter((s) =>
+        s
+          .toLowerCase()
+          .includes(campaignStore.form.system?.toLowerCase() ?? ""),
+      )
+    : systemSuggestions,
+);
 
 function selectSystem(system: string) {
-  campaignStore.form.system = system
-  showSuggestions.value = false
+  campaignStore.form.system = system;
+  showSuggestions.value = false;
 }
 
 async function onBlur() {
-    setTimeout(() => showSuggestions.value = false, 150)
+  setTimeout(() => (showSuggestions.value = false), 150);
 }
 </script>
 
 <template>
   <UForm :schema="hookSchema" :state="campaignStore.form" class="space-y-6">
-
     <!-- Título -->
     <UFormField
       label="Título de la campaña"
@@ -57,11 +60,7 @@ async function onBlur() {
     </UFormField>
 
     <!-- Sistema -->
-    <UFormField
-      label="Sistema de juego"
-      name="system"
-      required
-    >
+    <UFormField label="Sistema de juego" name="system" required>
       <div class="relative">
         <UInput
           v-model="campaignStore.form.system"
@@ -76,14 +75,12 @@ async function onBlur() {
         <Transition name="fade">
           <div
             v-if="showSuggestions && filteredSystems.length"
-            class="absolute top-full left-0 right-0 z-20 mt-1 rounded-lg
-                   bg-surface-high ghost-border shadow-ambient overflow-hidden"
+            class="absolute top-full left-0 right-0 z-20 mt-1 rounded-lg bg-surface-high ghost-border shadow-ambient overflow-hidden"
           >
             <button
               v-for="s in filteredSystems.slice(0, 6)"
               :key="s"
-              class="w-full text-left px-4 py-2.5 font-body text-body-sm text-on-surface
-                     hover:bg-surface-bright transition-colors"
+              class="w-full text-left px-4 py-2.5 font-body text-body-sm text-on-surface hover:bg-surface-bright transition-colors"
               @mousedown="selectSystem(s)"
             >
               {{ s }}
@@ -123,11 +120,19 @@ async function onBlur() {
         class="w-full"
       />
     </UFormField>
-
   </UForm>
 </template>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active { transition: opacity 0.15s, transform 0.15s; }
-.fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(-4px); }
+.fade-enter-active,
+.fade-leave-active {
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
 </style>

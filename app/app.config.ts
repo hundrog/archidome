@@ -15,15 +15,15 @@ export default defineAppConfig({
       },
       compoundVariants: [
         {
-          color:   'primary',
-          variant: 'solid',
-          class:   'gradient-primary text-white shadow-card-hover'
+          color: "primary",
+          variant: "solid",
+          class: "gradient-primary text-white shadow-card-hover",
         },
         {
-          variant: 'outline',
-          class:   'ghost-border bg-transparent'
-        }
-      ]
+          variant: "outline",
+          class: "ghost-border bg-transparent",
+        },
+      ],
     },
 
     card: {

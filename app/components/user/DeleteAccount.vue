@@ -1,47 +1,51 @@
 <script setup lang="ts">
 // components/user/DeleteAccount.vue
-const supabase = useSupabaseClient()
-const router   = useRouter()
-const toast    = useToast()
+const supabase = useSupabaseClient();
+const router = useRouter();
+const toast = useToast();
 
-const showModal  = ref(false)
-const deleting   = ref(false)
-const confirm    = ref('')
+const showModal = ref(false);
+const deleting = ref(false);
+const confirm = ref("");
 
 // El usuario debe escribir "ELIMINAR" para confirmar
-const CONFIRM_WORD = 'ELIMINAR'
-const canDelete    = computed(() => confirm.value === CONFIRM_WORD)
+const CONFIRM_WORD = "ELIMINAR";
+const canDelete = computed(() => confirm.value === CONFIRM_WORD);
 
 async function deleteAccount() {
-  if (!canDelete.value) return
-  deleting.value = true
+  if (!canDelete.value) return;
+  deleting.value = true;
 
   try {
     // Llama a la función de Postgres que borra auth.users en cascada
-    const { error } = await supabase.rpc('delete_user')
-    if (error) throw error
+    const { error } = await supabase.rpc("delete_user");
+    if (error) throw error;
 
     // Cierra la sesión localmente
-    await supabase.auth.signOut()
+    await supabase.auth.signOut();
 
     toast.add({
-      title:       'Cuenta eliminada',
-      description: 'Todos tus datos han sido eliminados.',
-      color:       'success'
-    })
+      title: "Cuenta eliminada",
+      description: "Todos tus datos han sido eliminados.",
+      color: "success",
+    });
 
-    router.push('/')
+    router.push("/");
   } catch (err: any) {
-    toast.add({ title: 'Error al eliminar', description: err.message, color: 'error' })
+    toast.add({
+      title: "Error al eliminar",
+      description: err.message,
+      color: "error",
+    });
   } finally {
-    deleting.value = false
-    showModal.value = false
+    deleting.value = false;
+    showModal.value = false;
   }
 }
 
 function openModal() {
-  confirm.value  = ''
-  showModal.value = true
+  confirm.value = "";
+  showModal.value = true;
 }
 </script>
 
@@ -50,8 +54,8 @@ function openModal() {
     <div>
       <h3 class="text-sm font-semibold text-red-400">Zona de peligro</h3>
       <p class="text-xs text-gray-500 mt-1">
-        Eliminar tu cuenta borrará permanentemente todos tus proyectos, campañas y datos.
-        Esta acción no se puede deshacer.
+        Eliminar tu cuenta borrará permanentemente todos tus proyectos, campañas
+        y datos. Esta acción no se puede deshacer.
       </p>
     </div>
     <UButton
@@ -68,7 +72,6 @@ function openModal() {
   <UModal v-model:open="showModal">
     <template #content>
       <div class="p-6 space-y-5">
-
         <!-- Header -->
         <div class="flex items-center gap-3">
           <div class="p-2 rounded-full bg-red-500/10 shrink-0">
@@ -76,22 +79,31 @@ function openModal() {
           </div>
           <div>
             <h3 class="text-lg font-semibold text-white">Eliminar cuenta</h3>
-            <p class="text-xs text-gray-500">Esta acción es permanente e irreversible</p>
+            <p class="text-xs text-gray-500">
+              Esta acción es permanente e irreversible
+            </p>
           </div>
         </div>
 
         <!-- Advertencia -->
-        <div class="rounded-lg bg-red-950/30 border border-red-900/40 p-4 space-y-2">
-          <p class="text-sm text-red-300 font-medium">Se eliminará permanentemente:</p>
+        <div
+          class="rounded-lg bg-red-950/30 border border-red-900/40 p-4 space-y-2"
+        >
+          <p class="text-sm text-red-300 font-medium">
+            Se eliminará permanentemente:
+          </p>
           <ul class="text-xs text-gray-400 space-y-1">
             <li class="flex items-center gap-2">
-              <UIcon name="i-lucide-x" class="size-3 text-red-500" /> Tu perfil y datos de contacto
+              <UIcon name="i-lucide-x" class="size-3 text-red-500" /> Tu perfil
+              y datos de contacto
             </li>
             <li class="flex items-center gap-2">
-              <UIcon name="i-lucide-x" class="size-3 text-red-500" /> Todos tus proyectos
+              <UIcon name="i-lucide-x" class="size-3 text-red-500" /> Todos tus
+              proyectos
             </li>
             <li class="flex items-center gap-2">
-              <UIcon name="i-lucide-x" class="size-3 text-red-500" /> Todas tus campañas e imágenes
+              <UIcon name="i-lucide-x" class="size-3 text-red-500" /> Todas tus
+              campañas e imágenes
             </li>
           </ul>
         </div>
@@ -99,7 +111,11 @@ function openModal() {
         <!-- Confirmación por texto -->
         <div class="space-y-2">
           <p class="text-sm text-gray-400">
-            Escribe <span class="font-mono font-bold text-red-400">{{ CONFIRM_WORD }}</span> para confirmar
+            Escribe
+            <span class="font-mono font-bold text-red-400">{{
+              CONFIRM_WORD
+            }}</span>
+            para confirmar
           </p>
           <UInput
             v-model="confirm"
@@ -126,7 +142,6 @@ function openModal() {
             @click="deleteAccount"
           />
         </div>
-
       </div>
     </template>
   </UModal>

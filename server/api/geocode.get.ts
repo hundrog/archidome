@@ -2,7 +2,12 @@
 export default defineEventHandler(async (event) => {
   const { q } = getQuery(event);
 
-  if (typeof q !== 'string' || q.startsWith("http") || q.includes("://") || q.includes("localhost")) {
+  if (
+    typeof q !== "string" ||
+    q.startsWith("http") ||
+    q.includes("://") ||
+    q.includes("localhost")
+  ) {
     throw createError({ statusCode: 400, message: "Query inválida" });
   }
 

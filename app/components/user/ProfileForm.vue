@@ -1,74 +1,82 @@
 <script setup lang="ts">
 // components/user/ProfileForm.vue
 // ─── Schema ───────────────────────────────────────────────────────────────────
-import { profileSchema } from '@/schemas/profile'
-import type { ProfileForm } from '@/schemas/profile'
+import { profileSchema } from "@/schemas/profile";
+import type { ProfileForm } from "@/schemas/profile";
 
 // ─── Setup ────────────────────────────────────────────────────────────────────
-const supabase = useSupabaseClient()
-const user     = useSupabaseUser()
-const toast    = useToast()
-const loading  = ref(false)
+const supabase = useSupabaseClient();
+const user = useSupabaseUser();
+const toast = useToast();
+const loading = ref(false);
 
 // ─── Cargar perfil ────────────────────────────────────────────────────────────
-const { data: profile } = await useAsyncData('profile', async () => {
+const { data: profile } = await useAsyncData("profile", async () => {
   const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.value!.sub)
-    .single()
+    .from("profiles")
+    .select("*")
+    .eq("id", user.value!.sub)
+    .single();
 
-  if (error) throw error
-  return data
-})
+  if (error) throw error;
+  return data;
+});
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
 const state = reactive<Partial<ProfileForm>>({
-  full_name: profile.value?.full_name  ?? '',
-  username:  profile.value?.username   ?? '',
-  bio:       profile.value?.bio        ?? '',
-  discord:   profile.value?.discord    ?? '',
-  whatsapp:  profile.value?.whatsapp   ?? '',
-  twitter:   profile.value?.twitter    ?? '',
-  instagram: profile.value?.instagram  ?? '',
-  website:   profile.value?.website    ?? ''
-})
+  full_name: profile.value?.full_name ?? "",
+  username: profile.value?.username ?? "",
+  bio: profile.value?.bio ?? "",
+  discord: profile.value?.discord ?? "",
+  whatsapp: profile.value?.whatsapp ?? "",
+  twitter: profile.value?.twitter ?? "",
+  instagram: profile.value?.instagram ?? "",
+  website: profile.value?.website ?? "",
+});
 
-const bioLength = computed(() => state.bio?.length ?? 0)
+const bioLength = computed(() => state.bio?.length ?? 0);
 
 // ─── Submit ───────────────────────────────────────────────────────────────────
 async function onSubmit() {
-  loading.value = true
+  loading.value = true;
   try {
     const { error } = await supabase
-      .from('profiles')
+      .from("profiles")
       .update({
-        full_name:  state.full_name,
-        username:   state.username   || null,
-        bio:        state.bio        || null,
-        discord:    state.discord    || null,
-        whatsapp:   state.whatsapp   || null,
-        twitter:    state.twitter    || null,
-        instagram:  state.instagram  || null,
-        website:    state.website    || null,
-        updated_at: new Date().toISOString()
+        full_name: state.full_name,
+        username: state.username || null,
+        bio: state.bio || null,
+        discord: state.discord || null,
+        whatsapp: state.whatsapp || null,
+        twitter: state.twitter || null,
+        instagram: state.instagram || null,
+        website: state.website || null,
+        updated_at: new Date().toISOString(),
       })
-      .eq('id', user.value!.id)
+      .eq("id", user.value!.id);
 
-    if (error) throw error
+    if (error) throw error;
 
-    toast.add({ title: 'Perfil actualizado', color: 'success' })
+    toast.add({ title: "Perfil actualizado", color: "success" });
   } catch (err: any) {
-    toast.add({ title: 'Error al guardar', description: err.message, color: 'error' })
+    toast.add({
+      title: "Error al guardar",
+      description: err.message,
+      color: "error",
+    });
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 </script>
 
 <template>
-  <UForm :schema="profileSchema" :state="state" class="space-y-8" @submit="onSubmit">
-
+  <UForm
+    :schema="profileSchema"
+    :state="state"
+    class="space-y-8"
+    @submit="onSubmit"
+  >
     <!-- ── Datos básicos ── -->
     <div class="space-y-4">
       <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">
@@ -85,7 +93,11 @@ async function onSubmit() {
           />
         </UFormField>
 
-        <UFormField label="Display name" name="username" hint="Solo letras, números y _">
+        <UFormField
+          label="Display name"
+          name="username"
+          hint="Solo letras, números y _"
+        >
           <UInput
             v-model="state.username"
             placeholder="tu_username"
@@ -115,7 +127,9 @@ async function onSubmit() {
     <!-- ── Contacto ── -->
     <div class="space-y-4">
       <div>
-        <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+        <h3
+          class="text-sm font-semibold text-gray-400 uppercase tracking-wider"
+        >
           Contacto
         </h3>
         <p class="text-xs text-gray-600 mt-1">
@@ -124,7 +138,6 @@ async function onSubmit() {
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
         <UFormField label="Discord" name="discord">
           <UInput
             v-model="state.discord"
@@ -133,7 +146,10 @@ async function onSubmit() {
             class="w-full"
           >
             <template #leading>
-              <UIcon name="i-simple-icons-discord" class="size-4 text-indigo-400" />
+              <UIcon
+                name="i-simple-icons-discord"
+                class="size-4 text-indigo-400"
+              />
             </template>
           </UInput>
         </UFormField>
@@ -146,7 +162,10 @@ async function onSubmit() {
             class="w-full"
           >
             <template #leading>
-              <UIcon name="i-simple-icons-whatsapp" class="size-4 text-green-400" />
+              <UIcon
+                name="i-simple-icons-whatsapp"
+                class="size-4 text-green-400"
+              />
             </template>
           </UInput>
         </UFormField>
@@ -189,7 +208,6 @@ async function onSubmit() {
             </template>
           </UInput>
         </UFormField>
-
       </div>
     </div>
 
@@ -203,6 +221,5 @@ async function onSubmit() {
         label="Guardar cambios"
       />
     </div>
-
   </UForm>
 </template>
