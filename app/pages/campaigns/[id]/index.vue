@@ -1,10 +1,18 @@
 <script setup lang="ts">
-import { useSupabaseClient, useSupabaseUser } from "#imports";
 import type { Database } from "@/types/database.types";
 import { useCampaignStore } from "~/stores/campaign";
 
-type CampaignWithProject = Database["public"]["Tables"]["campaigns"]["Row"] & {
-  projects?: { name: string };
+type Campaign = Database["public"]["Tables"]["campaigns"]["Row"] & {
+  profiles?: {
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+    bio: string | null;
+    discord: string | null;
+    whatsapp: string | null;
+    twitter: string | null;
+    instagram: string | null;
+  } | null;
 };
 
 // ─── Setup ────────────────────────────────────────────────────────────────────
@@ -14,48 +22,40 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const toast = useToast();
 const store = useCampaignStore();
-
 const id = route.params.id as string;
 
 // ─── Fetch ────────────────────────────────────────────────────────────────────
 const { data: campaign, pending } = await useAsyncData(
   `campaign-${id}`,
   async () => {
-    await store.fetchCampaignById(id);
-    // Still need to fetch with projects relation for this page
     const { data, error } = await supabase
       .from("campaigns")
-      .select("*, projects(name)")
+      .select(
+        "*, profiles!campaigns_profile_fkey(full_name, username, avatar_url, bio, discord, whatsapp, twitter, instagram)",
+      )
       .eq("id", id)
       .single();
-
     if (error) throw error;
-    return data as CampaignWithProject;
+    return data as Campaign;
   },
 );
 
-// 404 si no existe
 if (!campaign.value) {
   throw createError({ statusCode: 404, message: "Campaña no encontrada" });
 }
 
-// ─── ¿Es el dueño? ────────────────────────────────────────────────────────────
+// ─── Owner ────────────────────────────────────────────────────────────────────
 const isOwner = computed(
   () => !!user.value && user.value.sub === campaign.value?.user_id,
 );
 
-// ─── Eliminar ─────────────────────────────────────────────────────────────────
+// ─── Delete ───────────────────────────────────────────────────────────────────
 const showDeleteModal = ref(false);
 
 async function deleteCampaign() {
   try {
-    // Set current campaign for store
-    if (campaign.value) {
-      store.currentCampaign = campaign.value;
-    }
-
+    store.currentCampaign = campaign.value as any;
     await store.deleteCampaign(id);
-
     toast.add({ title: "Campaña eliminada", color: "success" });
     router.push("/campaigns");
   } catch (err: any) {
@@ -69,24 +69,56 @@ async function deleteCampaign() {
   }
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const safeImageUrl = computed(() => {
+  const url = campaign.value?.image_url;
+  if (!url) return null;
+  try {
+    return new URL(url).protocol === "https:" ? url : null;
+  } catch {
+    return null;
+  }
+});
+
+const playModeLabel: Record<string, string> = {
+  remote: "Remoto",
+  in_person: "Presencial",
+  hybrid: "Híbrido",
+};
+
+const frequencyLabel: Record<string, string> = {
+  weekly: "Semanal",
+  biweekly: "Quincenal",
+  monthly: "Mensual",
+  irregular: "Irregular",
+};
+
+const platformLabel: Record<string, string> = {
+  discord: "Discord",
+  roll20: "Roll20",
+  foundry: "Foundry VTT",
+  google_meet: "Google Meet",
+  tabletop_simulator: "Tabletop Simulator",
+  other: "Otro",
+};
+
+const houseRules = computed(() => {
+  const raw = campaign.value?.house_rules;
+  if (!raw || !Array.isArray(raw)) return [];
+  return raw as { title: string; description?: string }[];
+});
+
+const styleTags = computed(() => {
+  const raw = campaign.value?.style_tags;
+  if (!Array.isArray(raw)) return [];
+  return raw as string[];
+});
+
 // ─── SEO ──────────────────────────────────────────────────────────────────────
 useSeoMeta({
   title: () => campaign.value?.title ?? "Campaña",
   description: () => campaign.value?.description ?? "",
   ogImage: () => campaign.value?.image_url ?? undefined,
-});
-
-// protected image URL (solo https y de tu bucket):
-const safeImageUrl = computed(() => {
-  const url = campaign.value?.image_url;
-  if (!url) return null;
-  // Solo permite URLs de tu bucket de Supabase y https en general
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === "https:" ? url : null;
-  } catch {
-    return null;
-  }
 });
 </script>
 
@@ -95,24 +127,18 @@ const safeImageUrl = computed(() => {
     <!-- ── Loading ── -->
     <div
       v-if="pending"
-      class="w-full mx-auto px-4 py-12 space-y-6 animate-pulse"
+      class="max-w-6xl mx-auto px-4 py-12 space-y-6 animate-pulse"
     >
-      <div class="h-72 rounded-2xl bg-gray-800" />
-      <div class="h-8 bg-gray-800 rounded w-2/3" />
-      <div class="h-4 bg-gray-800 rounded w-1/3" />
-      <div class="space-y-2 pt-4">
-        <div class="h-3 bg-gray-800 rounded w-full" />
-        <div class="h-3 bg-gray-800 rounded w-5/6" />
-        <div class="h-3 bg-gray-800 rounded w-4/6" />
-      </div>
+      <div class="h-96 rounded-xl bg-surface-high" />
+      <div class="h-6 bg-surface-high rounded w-2/3" />
+      <div class="h-4 bg-surface-high rounded w-1/2" />
     </div>
 
     <template v-else-if="campaign">
-      <!-- ── Hero imagen ── -->
+      <!-- ── Hero ── -->
       <section
-        class="relative min-h-130 flex flex-col items-center justify-center px-4 overflow-hidden"
+        class="relative min-h-130 flex flex-col justify-end overflow-hidden"
       >
-        <!-- Fondo -->
         <div class="absolute inset-0 z-0">
           <img
             v-if="safeImageUrl"
@@ -120,87 +146,368 @@ const safeImageUrl = computed(() => {
             :alt="campaign.title"
             class="w-full h-full object-cover"
           />
-          <!-- Overlay oscuro -->
-          <div class="absolute inset-0 bg-surface/60" />
-          <!-- Gradiente hacia abajo -->
+          <div v-else class="w-full h-full bg-surface-low" />
+          <div class="absolute inset-0 bg-surface/50" />
           <div
-            class="absolute bottom-0 left-0 right-0 h-48 bg-linear-to-t from-surface to-transparent"
+            class="absolute bottom-0 left-0 right-0 h-64 bg-linear-to-t from-surface to-transparent"
           />
-          <!-- Botón volver -->
-          <div class="absolute top-4 left-4 lg:top-12 lg:left-12">
-            <UButton
-              icon="i-lucide-chevron-left"
-              to="/campaigns"
-              size="xl"
-              color="neutral"
-              variant="subtle"
-              class="rounded-full z-10"
-            />
-          </div>
-
-          <!-- Acciones dueño -->
-          <div
-            v-if="isOwner"
-            class="absolute bottom-4 right-4 lg:bottom-12 lg:right-12 flex gap-2"
-          >
-            <UButton
-              :to="`/campaigns/${id}/edit`"
-              icon="i-lucide-pencil"
-              size="xl"
-              variant="ghost"
-              color="primary"
-              class="rounded-full z-10"
-            />
-            <UButton
-              icon="i-lucide-trash-2"
-              size="xl"
-              variant="ghost"
-              color="error"
-              class="rounded-full z-10"
-              @click="showDeleteModal = true"
-            />
-          </div>
         </div>
-        <!-- Título + badges -->
-        <div class="absolute bottom-4 left-4 flex flex-col">
-          <div class="space-y-3">
-            <div class="flex flex-wrap gap-2 items-center">
-              <UBadge
-                color="primary"
-                variant="subtle"
-                :label="campaign.system"
-              />
-            </div>
 
-            <h1 class="text-3xl sm:text-4xl font-bold text-white leading-tight">
-              {{ campaign.title }}
-            </h1>
+        <!-- Botón volver -->
+        <div class="absolute top-6 left-6 z-10">
+          <UButton
+            icon="i-lucide-chevron-left"
+            to="/campaigns"
+            color="neutral"
+            variant="subtle"
+            class="rounded-full"
+          />
+        </div>
 
-            <p
-              class="text-primary-400 font-medium uppercase tracking-widest text-sm"
+        <!-- Acciones dueño -->
+        <div v-if="isOwner" class="absolute top-6 right-6 z-10 flex gap-2">
+          <UButton
+            :to="`/campaigns/${id}/edit`"
+            icon="i-lucide-pencil"
+            variant="ghost"
+            color="primary"
+            class="rounded-full"
+          />
+          <UButton
+            icon="i-lucide-trash-2"
+            variant="ghost"
+            color="error"
+            class="rounded-full"
+            @click="showDeleteModal = true"
+          />
+        </div>
+
+        <!-- Contenido -->
+        <div
+          class="relative z-10 px-6 pb-10 max-w-6xl mx-auto w-full space-y-3"
+        >
+          <div class="flex flex-wrap gap-2">
+            <span
+              class="label-metadata px-3 py-1 rounded-md"
+              style="background: rgba(159, 167, 255, 0.15); color: #9fa7ff"
             >
-              {{ campaign.hook }}
-            </p>
+              {{ campaign.system }}
+            </span>
+            <span
+              class="label-metadata px-3 py-1 rounded-md flex items-center gap-1.5"
+              style="background: rgba(74, 222, 128, 0.15); color: #4ade80"
+            >
+              <span class="size-1.5 rounded-full bg-green-400 inline-block" />
+              Reclutando
+            </span>
+          </div>
+          <h1
+            class="font-display text-display-md text-white leading-tight max-w-2xl"
+          >
+            {{ campaign.title }}
+          </h1>
+          <p class="font-body text-body-lg text-on-surface-dim max-w-xl">
+            {{ campaign.hook }}
+          </p>
+        </div>
+      </section>
+
+      <!-- ── Logistics + GM ── -->
+      <section class="max-w-6xl mx-auto px-6 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Session Logistics -->
+          <div class="bg-surface-low rounded-xl p-6 space-y-5">
+            <h3 class="label-metadata text-on-surface-dim">
+              Session Logistics
+            </h3>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex items-start gap-3">
+                <UIcon
+                  name="i-lucide-calendar"
+                  class="size-4 text-on-surface-dim mt-0.5 shrink-0"
+                />
+                <div>
+                  <p class="label-metadata" style="font-size: 0.6rem">
+                    Schedule
+                  </p>
+                  <p class="font-body text-body-sm text-on-surface">
+                    {{
+                      campaign.frequency
+                        ? frequencyLabel[campaign.frequency]
+                        : "—"
+                    }}
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <UIcon
+                  name="i-lucide-monitor"
+                  class="size-4 text-on-surface-dim mt-0.5 shrink-0"
+                />
+                <div>
+                  <p class="label-metadata" style="font-size: 0.6rem">Format</p>
+                  <p class="font-body text-body-sm text-on-surface">
+                    {{ playModeLabel[campaign.play_mode] }}
+                    <span
+                      v-if="campaign.virtual_platform"
+                      class="text-on-surface-dim"
+                    >
+                      / {{ platformLabel[campaign.virtual_platform] }}</span
+                    >
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <UIcon
+                  name="i-lucide-users"
+                  class="size-4 text-on-surface-dim mt-0.5 shrink-0"
+                />
+                <div>
+                  <p class="label-metadata" style="font-size: 0.6rem">Spots</p>
+                  <p class="font-body text-body-sm text-on-surface">
+                    {{ campaign.max_players }} jugadores
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <UIcon
+                  name="i-lucide-globe"
+                  class="size-4 text-on-surface-dim mt-0.5 shrink-0"
+                />
+                <div>
+                  <p class="label-metadata" style="font-size: 0.6rem">
+                    Language
+                  </p>
+                  <p class="font-body text-body-sm text-on-surface">
+                    {{ campaign.language }}
+                  </p>
+                </div>
+              </div>
+              <div v-if="campaign.duration" class="flex items-start gap-3">
+                <UIcon
+                  name="i-lucide-clock"
+                  class="size-4 text-on-surface-dim mt-0.5 shrink-0"
+                />
+                <div>
+                  <p class="label-metadata" style="font-size: 0.6rem">
+                    Duration
+                  </p>
+                  <p class="font-body text-body-sm text-on-surface">
+                    {{ campaign.duration }}
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3">
+                <UIcon
+                  name="i-lucide-swords"
+                  class="size-4 text-on-surface-dim mt-0.5 shrink-0"
+                />
+                <div>
+                  <p class="label-metadata" style="font-size: 0.6rem">
+                    Start Level
+                  </p>
+                  <p class="font-body text-body-sm text-on-surface">
+                    Nivel {{ campaign.start_level }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Game Master -->
+          <div class="bg-surface-low rounded-xl p-6 space-y-5">
+            <h3 class="label-metadata text-on-surface-dim">Game Master</h3>
+            <div class="flex items-start gap-4">
+              <img
+                v-if="campaign.profiles?.avatar_url"
+                :src="campaign.profiles.avatar_url"
+                :alt="campaign.profiles.full_name ?? 'GM'"
+                class="size-8 rounded-full object-cover ring-2 ring-surface-variant shrink-0"
+              />
+              <div
+                v-else
+                class="size-8 rounded-full bg-surface-variant flex items-center justify-center shrink-0"
+              >
+                <UIcon
+                  name="i-lucide-user"
+                  class="size-7 text-on-surface-dim"
+                />
+              </div>
+              <div class="flex-1 min-w-0 space-y-1">
+                <h4 class="font-display text-headline-sm text-on-surface">
+                  {{ campaign.profiles?.full_name ?? "GM desconocido" }}
+                </h4>
+                <p
+                  v-if="campaign.profiles?.username"
+                  class="font-body text-label-sm text-on-surface-dim"
+                >
+                  @{{ campaign.profiles.username }}
+                </p>
+                <p
+                  v-if="campaign.profiles?.bio"
+                  class="font-body text-body-sm text-on-surface-dim line-clamp-3 mt-2 italic"
+                >
+                  "{{ campaign.profiles.bio }}"
+                </p>
+              </div>
+            </div>
+            <div
+              v-if="
+                campaign.profiles?.discord ||
+                campaign.profiles?.whatsapp ||
+                campaign.profiles?.twitter ||
+                campaign.profiles?.instagram
+              "
+              class="pt-2 space-y-2"
+            >
+              <p class="label-metadata text-on-surface-dim">Contacto</p>
+              <div class="flex flex-wrap gap-2">
+                <ULink
+                  v-if="campaign.profiles?.discord"
+                  :href="`https://discord.com/users/${campaign.profiles.discord}`"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center gap-2 px-3 py-2 rounded-full bg-surface-high hover:bg-surface-bright transition-colors font-body text-label-md text-on-surface"
+                >
+                  <UIcon
+                    name="i-simple-icons-discord"
+                    class="size-4"
+                    style="color: #5865f2"
+                  />
+                  Discord
+                </ULink>
+                <ULink
+                  v-if="campaign.profiles?.whatsapp"
+                  :href="`https://wa.me/${campaign.profiles.whatsapp.replace(/\D/g, '')}`"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center gap-2 px-3 py-2 rounded-full bg-surface-high hover:bg-surface-bright transition-colors font-body text-label-md text-on-surface"
+                >
+                  <UIcon
+                    name="i-simple-icons-whatsapp"
+                    class="size-4"
+                    style="color: #25d366"
+                  />
+                  WhatsApp
+                </ULink>
+                <ULink
+                  v-if="campaign.profiles?.twitter"
+                  :href="`https://twitter.com/${campaign.profiles.twitter}`"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center gap-2 px-3 py-2 rounded-full bg-surface-high hover:bg-surface-bright transition-colors font-body text-label-md text-on-surface"
+                >
+                  <UIcon
+                    name="i-simple-icons-x"
+                    class="size-4 text-on-surface"
+                  />
+                  Twitter
+                </ULink>
+                <ULink
+                  v-if="campaign.profiles?.instagram"
+                  :href="`https://instagram.com/${campaign.profiles.instagram}`"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="flex items-center gap-2 px-3 py-2 rounded-full bg-surface-high hover:bg-surface-bright transition-colors font-body text-label-md text-on-surface"
+                >
+                  <UIcon
+                    name="i-simple-icons-instagram"
+                    class="size-4"
+                    style="color: #e1306c"
+                  />
+                  Instagram
+                </ULink>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- ── Contenido ── -->
-      <div class="grid grid-cols-4 gap-1 lg:gap-8">
-        <div class="col-span-3"></div>
-        <div class="col-span-1">
-          <div class="card p-4 lg:p-6">
-            <h4
-              class="text-sm font-semibold text-gray-400 uppercase tracking-wider"
-            >
-              Scheduling
-            </h4>
+      <!-- ── Descripción + Sidebar ── -->
+      <section class="max-w-6xl mx-auto px-6 pb-16">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Izquierda -->
+          <div class="lg:col-span-2 space-y-10">
+            <!-- About -->
+            <div class="space-y-4">
+              <h2
+                class="font-display text-headline-md text-on-surface flex items-center gap-2"
+              >
+                <UIcon name="i-lucide-book-open" class="size-5 text-primary" />
+                About the Adventure
+              </h2>
+              <p
+                class="font-body text-body-md text-on-surface-dim leading-relaxed whitespace-pre-line"
+              >
+                {{ campaign.description }}
+              </p>
+            </div>
+
+            <!-- House Rules -->
+            <div v-if="houseRules.length" class="space-y-4">
+              <h2
+                class="font-display text-headline-md text-on-surface flex items-center gap-2"
+              >
+                <UIcon name="i-lucide-scroll" class="size-5 text-primary" />
+                House Rules
+              </h2>
+              <div class="space-y-3">
+                <div
+                  v-for="(rule, idx) in houseRules"
+                  :key="idx"
+                  class="flex items-start gap-4 p-4 rounded-xl bg-surface-low"
+                >
+                  <div
+                    class="size-7 rounded-full bg-surface-variant flex items-center justify-center shrink-0 mt-0.5"
+                  >
+                    <span class="font-body text-label-sm text-on-surface-dim">{{
+                      idx + 1
+                    }}</span>
+                  </div>
+                  <div>
+                    <p
+                      class="font-body text-body-sm text-on-surface font-medium"
+                    >
+                      {{ rule.title }}
+                    </p>
+                    <p
+                      v-if="rule.description"
+                      class="font-body text-label-sm text-on-surface-dim mt-0.5"
+                    >
+                      {{ rule.description }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Derecha: What to Expect -->
+          <div class="space-y-4">
+            <h2 class="font-display text-headline-md text-on-surface">
+              What to Expect
+            </h2>
+            <div class="space-y-3">
+              <div
+                v-for="tag in styleTags"
+                :key="tag"
+                class="p-4 rounded-xl bg-surface-high"
+              >
+                <UIcon
+                  name="i-lucide-sparkles"
+                  class="size-5 text-secondary mb-2"
+                />
+                <p class="font-body text-body-sm text-on-surface font-medium">
+                  {{ tag }}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
     </template>
 
-    <!-- ── Modal confirmar eliminar ── -->
+    <!-- ── Modal eliminar ── -->
     <UModal v-model:open="showDeleteModal">
       <template #content>
         <div class="p-6 space-y-4">
@@ -211,11 +518,15 @@ const safeImageUrl = computed(() => {
                 class="size-5 text-red-400"
               />
             </div>
-            <h3 class="text-lg font-semibold text-white">Eliminar campaña</h3>
+            <h3 class="font-display text-headline-sm text-white">
+              Eliminar campaña
+            </h3>
           </div>
-          <p class="text-gray-400 text-sm">
+          <p class="font-body text-body-sm text-on-surface-dim">
             ¿Estás seguro de que quieres eliminar
-            <span class="text-white font-medium">{{ campaign?.title }}</span
+            <span class="text-on-surface font-medium">{{
+              campaign?.title
+            }}</span
             >? Esta acción no se puede deshacer.
           </p>
           <div class="flex justify-end gap-3 pt-2">
