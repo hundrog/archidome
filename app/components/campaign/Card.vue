@@ -141,6 +141,14 @@ const PLACEHOLDER =
             {{ campaign.location_name.split(",")[0] }}
           </span>
         </div>
+        <div class="flex items-center gap-1 ml-2 shrink-0" v-else-if="campaign.language">
+          <UIcon name="i-lucide-map-pin" class="size-3 text-on-surface-dim" />
+          <span
+            class="font-body text-label-sm text-on-surface-dim truncate max-w-24"
+          >
+            {{ campaign.language.toUpperCase() }}
+          </span>
+        </div>
       </div>
     </div>
   </NuxtLink>
