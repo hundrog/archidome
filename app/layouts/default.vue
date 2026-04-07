@@ -38,7 +38,14 @@ const logout = async () => {
   <UApp>
     <UHeader transparent>
       <template #title>
-        <Logo class="h-6 w-auto" />
+        <div class="logo-text logo-image inline-flex items-center gap-2 font-display text-xl text-on-surface">
+        <img
+          src="/arcane-logo.png"
+          alt="Rollatable"
+          class="h-8 w-auto"
+        />
+        <p>Arkana</p>
+          </div>
       </template>
 
       <UNavigationMenu :items="items" :ui="{ list: 'gap-2' }">
