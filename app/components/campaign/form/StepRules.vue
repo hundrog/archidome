@@ -5,11 +5,17 @@ import { rulesSchema } from "@/schemas/campaign";
 const campaignStore = useCampaignStore();
 
 // ─── Jugadores ────────────────────────────────────────────────────────────────
-function decrement(field: "max_players" | "current_players" | "start_level", min: number) {
+function decrement(
+  field: "max_players" | "current_players" | "start_level",
+  min: number,
+) {
   const val = campaignStore.form[field] as number;
   if (val > min) campaignStore.form[field] = val - 1;
 }
-function increment(field: "max_players" | "current_players" | "start_level", max: number) {
+function increment(
+  field: "max_players" | "current_players" | "start_level",
+  max: number,
+) {
   const val = campaignStore.form[field] as number;
   if (val < max) campaignStore.form[field] = val + 1;
 }
@@ -82,9 +88,10 @@ function removeRule(idx: number) {
     <div class="space-y-4">
       <h3 class="label-metadata text-on-surface-dim">The Party</h3>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 place-items-center">
         <!-- Max players -->
-        <UFormField label="Player Slots" name="max_players">
+        <UFormField class="text-center" name="max_players">
+          Player Slots
           <div class="flex items-center gap-4 mt-1">
             <button
               type="button"
@@ -108,7 +115,8 @@ function removeRule(idx: number) {
           </div>
         </UFormField>
         <!-- Current players -->
-        <UFormField label="Current Players" name="current_players">
+        <UFormField class="text-center" name="current_players">
+          Current Players
           <div class="flex items-center gap-4 mt-1">
             <button
               type="button"
@@ -133,7 +141,8 @@ function removeRule(idx: number) {
         </UFormField>
 
         <!-- Start level -->
-        <UFormField label="Start Level" name="start_level">
+        <UFormField class="text-center" name="start_level">
+          Start Level
           <div class="flex items-center gap-4 mt-1">
             <button
               type="button"
