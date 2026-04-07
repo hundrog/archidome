@@ -86,6 +86,10 @@ const PLACEHOLDER =
       <span class="label-metadata text-primary">
         {{ campaign.system }}
       </span>
+      <span class="label-metadata text-secondary items-center gap-1.5 flex">
+        <UIcon name="i-lucide-users" class="size-3 text-on-surface-dim shrink-0" />
+        {{ campaign.current_players }} / {{ campaign.max_players }}
+      </span>
 
       <!-- Título -->
       <h2
