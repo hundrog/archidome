@@ -29,12 +29,12 @@ const baseItems = [
 ];
 
 const items = computed<NavigationMenuItem[]>(() => [
-baseItems
-    .filter(item => !item.auth || !!user.value)
+  baseItems
+    .filter((item) => !item.auth || !!user.value)
     .map(({ auth, ...item }) => ({
       ...item,
-      active: route.path === item.to
-    }))
+      active: route.path === item.to,
+    })),
 ]);
 
 const logout = async () => {
@@ -47,14 +47,12 @@ const logout = async () => {
   <UApp>
     <UHeader transparent>
       <template #title>
-        <div class="logo-text logo-image inline-flex items-center gap-2 font-display text-xl text-on-surface">
-        <img
-          src="/arcane-logo.png"
-          alt="Rollatable"
-          class="h-8 w-auto"
-        />
-        <p>Arkana</p>
-          </div>
+        <div
+          class="logo-text logo-image inline-flex items-center gap-2 font-display text-xl text-on-surface"
+        >
+          <img src="/arcane-logo.png" alt="Rollatable" class="h-8 w-auto" />
+          <p>Arkana</p>
+        </div>
       </template>
 
       <UNavigationMenu :items="items" :ui="{ list: 'gap-2' }">

@@ -80,22 +80,23 @@
   --text-label-sm: 0.6875rem;
 
   @keyframes gradient-move {
-    0%, 100% {
+    0%,
+    100% {
       background-position: 0% 50%;
     }
     50% {
       background-position: 100% 50%;
     }
   }
-  
+
   @keyframes hue-spin {
-      from {
-        filter: hue-rotate(0deg);
-      }
-      to {
-        filter: hue-rotate(360deg);
-      }
+    from {
+      filter: hue-rotate(0deg);
     }
+    to {
+      filter: hue-rotate(360deg);
+    }
+  }
 }
 
 /* ── Base ────────────────────────────────────────────────────────────────────── */
@@ -191,7 +192,12 @@ h6 {
 }
 
 .logo-text:hover p {
-  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary), var(--color-tertiary));
+  background: linear-gradient(
+    90deg,
+    var(--color-primary),
+    var(--color-secondary),
+    var(--color-tertiary)
+  );
   background-size: 200% auto;
   background-clip: text;
   -webkit-background-clip: text;

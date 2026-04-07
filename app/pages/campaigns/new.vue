@@ -162,7 +162,7 @@ async function onSubmit() {
       </div>
 
       <!-- ── Tabs ── -->
-      <UTabs v-model="currentTab" :items="tabs"">
+      <UTabs v-model="currentTab" :items="tabs">
         <!-- Hook -->
         <template #hook>
           <div class="pt-8">

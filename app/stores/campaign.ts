@@ -124,7 +124,7 @@ export const useCampaignStore = defineStore("campaign", () => {
 
   // ─── Getters ──────────────────────────────────────────────────────────────
   const showLocation = computed(
-    () => form.play_mode === "in_person" || form.play_mode === "hybrid"
+    () => form.play_mode === "in_person" || form.play_mode === "hybrid",
   );
 
   const playModeOptions = computed(() => [
@@ -134,7 +134,7 @@ export const useCampaignStore = defineStore("campaign", () => {
   ]);
 
   const projectOptions = computed(() =>
-    projects.value.map((p) => ({ label: p.name, value: p.id }))
+    projects.value.map((p) => ({ label: p.name, value: p.id })),
   );
 
   const filteredCampaigns = computed(() => {
@@ -195,7 +195,12 @@ export const useCampaignStore = defineStore("campaign", () => {
 
   // Campaigns
   function getDistance(campaign: Campaign): string | null {
-    if (!nearbyOnly.value || !userCoords.value || !campaign.lat || !campaign.lng)
+    if (
+      !nearbyOnly.value ||
+      !userCoords.value ||
+      !campaign.lat ||
+      !campaign.lng
+    )
       return null;
     const km = distanceKm(
       userCoords.value.lat,

@@ -11,7 +11,7 @@ export default defineNuxtConfig({
   modules: ["@nuxt/ui", "@nuxtjs/supabase", "@pinia/nuxt"],
   css: ["~/assets/css/main.css"],
   colorMode: {
-    preference: 'dark'
+    preference: "dark",
   },
   vite: {
     optimizeDeps: {

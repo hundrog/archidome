@@ -79,7 +79,7 @@ const isFirstTab = computed(() => currentTab.value === "0");
 onMounted(async () => {
   try {
     await campaignStore.fetchCampaignById(id);
-    
+
     if (campaignStore.currentCampaign) {
       const campaign = campaignStore.currentCampaign;
       campaignStore.form.title = campaign.title;
@@ -87,7 +87,8 @@ onMounted(async () => {
       campaignStore.form.hook = campaign.hook ?? "";
       campaignStore.form.description = campaign.description ?? "";
       campaignStore.form.play_mode = campaign.play_mode ?? "remote";
-      campaignStore.form.virtual_platform = campaign.virtual_platform ?? undefined;
+      campaignStore.form.virtual_platform =
+        campaign.virtual_platform ?? undefined;
       campaignStore.form.frequency = campaign.frequency ?? undefined;
       campaignStore.form.language = campaign.language ?? "Español";
       campaignStore.form.timezone = campaign.timezone ?? undefined;
@@ -123,10 +124,13 @@ async function onSubmit() {
 
   try {
     let imageUrl: string | null = campaignStore.existingImageUrl ?? null;
-    
+
     if (campaignStore.imageFile) {
       imageUrl = await campaignStore.uploadImage(campaignStore.imageFile);
-    } else if (campaignStore.shouldDeleteExistingImage && campaignStore.existingImageUrl) {
+    } else if (
+      campaignStore.shouldDeleteExistingImage &&
+      campaignStore.existingImageUrl
+    ) {
       await campaignStore.deleteImageFromBucket(campaignStore.existingImageUrl);
       imageUrl = null;
     }
@@ -161,7 +165,7 @@ async function onSubmit() {
       description: `"${campaignStore.form.title}" fue guardada.`,
       color: "success",
     });
-    
+
     router.push(`/campaigns/${id}`);
   } catch (err: any) {
     toast.add({ title: "Error", description: err.message, color: "error" });
@@ -172,7 +176,10 @@ async function onSubmit() {
 </script>
 
 <template>
-  <div v-if="initialLoading" class="min-h-screen bg-surface flex items-center justify-center">
+  <div
+    v-if="initialLoading"
+    class="min-h-screen bg-surface flex items-center justify-center"
+  >
     <UIcon name="i-lucide-loader" class="animate-spin size-8 text-primary" />
   </div>
 

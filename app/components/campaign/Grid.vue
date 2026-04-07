@@ -155,7 +155,7 @@ function getDistance(campaign: Campaign): string | null {
       <CampaignCard
         v-for="campaign in store.filteredCampaigns"
         :key="campaign.id"
-        :campaign="(campaign as Campaign)"
+        :campaign="campaign as Campaign"
         :distance="getDistance(campaign as Campaign)"
       />
     </div>
