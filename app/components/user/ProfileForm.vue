@@ -53,7 +53,7 @@ async function onSubmit() {
         website: state.website || null,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", user.value!.id);
+      .eq("id", user.value!.sub);
 
     if (error) throw error;
 
@@ -84,17 +84,17 @@ async function onSubmit() {
       </h3>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <UFormField label="Nombre" name="full_name" required>
+        <UFormField label="Display Name" name="full_name" required>
           <UInput
             v-model="state.full_name"
-            placeholder="Tu nombre"
+            placeholder="The name that will be shown to other players"
             size="lg"
             class="w-full"
           />
         </UFormField>
 
         <UFormField
-          label="Display name"
+          label="User name"
           name="username"
           hint="Solo letras, números y _"
         >
@@ -178,7 +178,10 @@ async function onSubmit() {
             class="w-full"
           >
             <template #leading>
-              <span class="text-gray-500 text-sm">@</span>
+              <UIcon
+                name="i-simple-icons-x"
+                class="size-4 text-white"
+              />
             </template>
           </UInput>
         </UFormField>
@@ -191,7 +194,10 @@ async function onSubmit() {
             class="w-full"
           >
             <template #leading>
-              <span class="text-gray-500 text-sm">@</span>
+              <UIcon
+                name="i-simple-icons-instagram"
+                class="size-4 text-pink-400"
+              />
             </template>
           </UInput>
         </UFormField>

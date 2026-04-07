@@ -15,7 +15,7 @@ const logout = async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-950 text-gray-100 px-4 py-10">
+  <div class="min-h-screen bg-surface text-on-surface px-4 py-10">
     <div class="max-w-3xl mx-auto space-y-8">
       <!-- ── Encabezado ── -->
       <div class="flex items-center gap-4">
@@ -23,11 +23,11 @@ const logout = async () => {
           v-if="user?.user_metadata?.avatar_url"
           :src="user.user_metadata.avatar_url"
           :alt="user.user_metadata.full_name"
-          class="size-14 rounded-full object-cover ring-2 ring-gray-700"
+          class="size-14 rounded-full object-cover ring-2 ring-outline"
         />
         <div
           v-else
-          class="size-14 rounded-full bg-gray-800 flex items-center justify-center ring-2 ring-gray-700"
+          class="size-14 rounded-full bg-secondary-container flex items-center justify-center ring-2 ring-outline"
         >
           <UIcon name="i-lucide-user" class="size-6 text-gray-500" />
         </div>
@@ -40,7 +40,7 @@ const logout = async () => {
       </div>
 
       <!-- ── Tabs ── -->
-      <UTabs :items="tabs" variant="link">
+      <UTabs :items="tabs">
         <!-- Perfil -->
         <template #profile>
           <div class="pt-6">
