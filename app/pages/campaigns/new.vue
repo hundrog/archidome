@@ -11,6 +11,11 @@ const router = useRouter();
 // ─── Estado del formulario ────────────────────────────────────────────────────
 const campaignStore = useCampaignStore();
 
+// Reset form when mounting to clear any previous campaign data
+onMounted(() => {
+  campaignStore.resetForm();
+});
+
 // ─── Imagen ───────────────────────────────────────────────────────────────────
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
@@ -142,7 +147,7 @@ async function onSubmit() {
       <div>
         <NuxtLink
           to="/campaigns"
-          class="inline-flex items-center gap-2 font-body text-label-sm text-on-surface-dim hover:text-on-surface transition-colors mb-6"
+          class="inline-flex items-center gap-2 font-body text-label-xl text-on-surface-dim hover:text-on-surface transition-colors mb-6"
         >
           <UIcon name="i-lucide-arrow-left" class="size-4" />
           Volver a campañas

@@ -139,6 +139,18 @@ useSeoMeta({
       <section
         class="relative min-h-130 flex flex-col justify-end overflow-hidden"
       >
+        <!-- Botón volver -->
+        <div
+          class="relative z-10 px-6 pb-10 max-w-6xl mx-auto w-full space-y-3"
+        >
+          <NuxtLink
+            to="/campaigns"
+            class="inline-flex items-center gap-2 font-body text-label-xl text-on-surface-dim hover:text-on-surface transition-colors mb-6"
+          >
+            <UIcon name="i-lucide-arrow-left" class="size-4" />
+            Volver a campañas
+          </NuxtLink>
+        </div>
         <div class="absolute inset-0 z-0">
           <img
             v-if="safeImageUrl"
@@ -153,29 +165,18 @@ useSeoMeta({
           />
         </div>
 
-        <!-- Botón volver -->
-        <div class="absolute top-6 left-6 z-10">
-          <UButton
-            icon="i-lucide-chevron-left"
-            to="/campaigns"
-            color="neutral"
-            variant="subtle"
-            class="rounded-full"
-          />
-        </div>
-
         <!-- Acciones dueño -->
-        <div v-if="isOwner" class="absolute top-6 right-6 z-10 flex gap-2">
+        <div v-if="isOwner" class="absolute bottom-16 right-6 z-20 flex gap-2">
           <UButton
             :to="`/campaigns/${id}/edit`"
             icon="i-lucide-pencil"
-            variant="ghost"
-            color="primary"
+            variant="soft"
+            color="secondary"
             class="rounded-full"
           />
           <UButton
             icon="i-lucide-trash-2"
-            variant="ghost"
+            variant="soft"
             color="error"
             class="rounded-full"
             @click="showDeleteModal = true"
