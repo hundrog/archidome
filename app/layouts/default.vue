@@ -5,7 +5,7 @@ const route = useRoute();
 const user = useSupabaseUser();
 const supabase = useSupabaseClient();
 
-const items = computed<NavigationMenuItem[]>(() => [
+const baseItems = [
   {
     to: "https://www.buymeacoffee.com/rollatable",
     target: "_blank",
@@ -18,19 +18,28 @@ const items = computed<NavigationMenuItem[]>(() => [
     label: "Crear campaña",
     to: "/campaigns/new",
     icon: "i-lucide-plus",
-    active: route.path === "/campaigns/new",
+    auth: false,
   },
   {
     label: "Settings",
     to: "/settings",
     icon: "i-lucide-settings",
-    active: route.path === "/settings",
+    auth: true,
   },
+];
+
+const items = computed<NavigationMenuItem[]>(() => [
+baseItems
+    .filter(item => !item.auth || !!user.value)
+    .map(({ auth, ...item }) => ({
+      ...item,
+      active: route.path === item.to
+    }))
 ]);
 
 const logout = async () => {
   await supabase.auth.signOut();
-  navigateTo("/login");
+  navigateTo("/campaigns");
 };
 </script>
 
@@ -60,8 +69,6 @@ const logout = async () => {
       </UNavigationMenu>
 
       <template #right>
-        <UColorModeButton />
-
         <UButton
           color="neutral"
           variant="ghost"

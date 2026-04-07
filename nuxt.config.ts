@@ -10,6 +10,9 @@ export default defineNuxtConfig({
   },
   modules: ["@nuxt/ui", "@nuxtjs/supabase", "@pinia/nuxt"],
   css: ["~/assets/css/main.css"],
+  colorMode: {
+    preference: 'dark'
+  },
   vite: {
     optimizeDeps: {
       include: ["@vue/devtools-core", "@vue/devtools-kit", "zod"],
