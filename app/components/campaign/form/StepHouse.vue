@@ -20,7 +20,7 @@ async function fetchProjects() {
     const { data } = await supabase
       .from("projects")
       .select("id, name")
-      .eq("user_id", user.value.sub);
+      .eq("created_by", user.value.sub);
     projects.value = data ?? [];
   } catch (error) {
     console.error("Error fetching projects:", error);

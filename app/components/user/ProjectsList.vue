@@ -1,13 +1,8 @@
+<!-- components/user/ProjectsList.vue -->
 <script setup lang="ts">
-// components/user/ProjectsList.vue
-
 // ─── Tipos ────────────────────────────────────────────────────────────────────
-interface Project {
-  id: string;
-  name: string;
-  user_id: string;
-  created_at: string;
-}
+import type { Database } from "@/types/database.types";
+type Project = Database["public"]["Tables"]["projects"]["Row"];
 
 // ─── Setup ────────────────────────────────────────────────────────────────────
 const supabase = useSupabaseClient();
@@ -32,7 +27,7 @@ async function fetchProjects() {
     const { data, error } = await supabase
       .from("projects")
       .select("*")
-      .eq("user_id", user.value!.sub)
+      .eq("created_by", user.value!.sub)
       .order("created_at", { ascending: true });
 
     if (error) throw error;
@@ -57,7 +52,7 @@ async function createProject() {
   try {
     const { data, error } = await supabase
       .from("projects")
-      .insert({ name: newName.value.trim(), user_id: user.value!.id })
+      .insert({ name: newName.value.trim(), created_by: user.value!.id })
       .select()
       .single();
 
