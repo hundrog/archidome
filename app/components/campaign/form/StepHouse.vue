@@ -83,7 +83,7 @@ const summaryItems = computed(() =>
     {
       icon: "i-lucide-users",
       label: "Jugadores",
-      value: `${campaignStore.form.max_players} máximo`,
+      value: `${campaignStore.form.current_players} / ${campaignStore.form.max_players}`,
     },
     {
       icon: "i-lucide-swords",

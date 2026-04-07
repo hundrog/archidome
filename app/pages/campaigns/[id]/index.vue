@@ -266,7 +266,7 @@ useSeoMeta({
                 <div>
                   <p class="label-metadata" style="font-size: 0.6rem">Spots</p>
                   <p class="font-body text-body-sm text-on-surface">
-                    {{ campaign.max_players }} jugadores
+                    {{ campaign.current_players }} / {{ campaign.max_players }} jugadores
                   </p>
                 </div>
               </div>

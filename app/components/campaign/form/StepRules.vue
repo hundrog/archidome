@@ -5,11 +5,11 @@ import { rulesSchema } from "@/schemas/campaign";
 const campaignStore = useCampaignStore();
 
 // ─── Jugadores ────────────────────────────────────────────────────────────────
-function decrement(field: "max_players" | "start_level", min: number) {
+function decrement(field: "max_players" | "current_players" | "start_level", min: number) {
   const val = campaignStore.form[field] as number;
   if (val > min) campaignStore.form[field] = val - 1;
 }
-function increment(field: "max_players" | "start_level", max: number) {
+function increment(field: "max_players" | "current_players" | "start_level", max: number) {
   const val = campaignStore.form[field] as number;
   if (val < max) campaignStore.form[field] = val + 1;
 }
@@ -82,7 +82,7 @@ function removeRule(idx: number) {
     <div class="space-y-4">
       <h3 class="label-metadata text-on-surface-dim">The Party</h3>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <!-- Max players -->
         <UFormField label="Player Slots" name="max_players">
           <div class="flex items-center gap-4 mt-1">
@@ -105,33 +105,55 @@ function removeRule(idx: number) {
             >
               <UIcon name="i-lucide-plus" class="size-4 text-on-surface" />
             </button>
-            <span class="font-body text-label-sm text-on-surface-dim"
-              >jugadores máximo</span
+          </div>
+        </UFormField>
+        <!-- Current players -->
+        <UFormField label="Current Players" name="current_players">
+          <div class="flex items-center gap-4 mt-1">
+            <button
+              type="button"
+              class="size-9 rounded-full bg-surface-high hover:bg-surface-bright flex items-center justify-center transition-colors ghost-border"
+              @click="decrement('current_players', 1)"
             >
+              <UIcon name="i-lucide-minus" class="size-4 text-on-surface" />
+            </button>
+            <span
+              class="font-display text-display-sm text-on-surface w-8 text-center"
+            >
+              {{ campaignStore.form.current_players }}
+            </span>
+            <button
+              type="button"
+              class="size-9 rounded-full bg-surface-high hover:bg-surface-bright flex items-center justify-center transition-colors ghost-border"
+              @click="increment('current_players', 20)"
+            >
+              <UIcon name="i-lucide-plus" class="size-4 text-on-surface" />
+            </button>
           </div>
         </UFormField>
 
         <!-- Start level -->
         <UFormField label="Start Level" name="start_level">
-          <div class="space-y-2 mt-1">
-            <div class="flex items-center justify-between">
-              <span class="font-body text-label-sm text-on-surface-dim"
-                >Lvl 1</span
-              >
-              <span class="font-body text-label-sm text-primary font-medium">
-                Current: Lvl {{ campaignStore.form.start_level }}
-              </span>
-              <span class="font-body text-label-sm text-on-surface-dim"
-                >Lvl 20</span
-              >
-            </div>
-            <input
-              v-model.number="campaignStore.form.start_level"
-              type="range"
-              min="1"
-              max="20"
-              class="w-full accent-primary cursor-pointer"
-            />
+          <div class="flex items-center gap-4 mt-1">
+            <button
+              type="button"
+              class="size-9 rounded-full bg-surface-high hover:bg-surface-bright flex items-center justify-center transition-colors ghost-border"
+              @click="decrement('start_level', 1)"
+            >
+              <UIcon name="i-lucide-minus" class="size-4 text-on-surface" />
+            </button>
+            <span
+              class="font-display text-display-sm text-on-surface w-8 text-center"
+            >
+              {{ campaignStore.form.start_level }}
+            </span>
+            <button
+              type="button"
+              class="size-9 rounded-full bg-surface-high hover:bg-surface-bright flex items-center justify-center transition-colors ghost-border"
+              @click="increment('start_level', 20)"
+            >
+              <UIcon name="i-lucide-plus" class="size-4 text-on-surface" />
+            </button>
           </div>
         </UFormField>
       </div>

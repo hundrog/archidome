@@ -25,6 +25,7 @@ export const campaignSchema = z.object({
 
   // Rules
   max_players: z.number().int().min(1).max(20).default(4),
+  current_players: z.number().int().min(1).max(20).default(0),
   start_level: z.number().int().min(1).max(20).default(1),
   style_tags: z.array(z.string()).default([]),
   house_rules: z
@@ -66,6 +67,7 @@ export const portalSchema = z.object({
 
 export const rulesSchema = z.object({
   max_players: z.number().int().min(1).max(20).default(4),
+  current_players: z.number().int().min(1).max(20).default(0),
   start_level: z.number().int().min(1).max(20).default(1),
   style_tags: z.array(z.string()).default([]),
   house_rules: z

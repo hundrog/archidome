@@ -96,6 +96,7 @@ onMounted(async () => {
       campaignStore.form.lat = campaign.lat;
       campaignStore.form.lng = campaign.lng;
       campaignStore.form.max_players = campaign.max_players ?? 4;
+      campaignStore.form.current_players = campaign.current_players ?? 4;
       campaignStore.form.start_level = campaign.start_level ?? 1;
       campaignStore.form.style_tags = campaign.style_tags ?? [];
       campaignStore.form.house_rules = (campaign.house_rules as any) ?? [];
@@ -145,6 +146,7 @@ async function onSubmit() {
       lat: campaignStore.form.lat,
       lng: campaignStore.form.lng,
       max_players: campaignStore.form.max_players || 4,
+      current_players: campaignStore.form.current_players || 0,
       start_level: campaignStore.form.start_level || 1,
       style_tags: campaignStore.form.style_tags || [],
       house_rules: campaignStore.form.house_rules || [],

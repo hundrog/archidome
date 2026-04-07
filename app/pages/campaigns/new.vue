@@ -109,6 +109,7 @@ async function onSubmit() {
       lat: campaignStore.form.lat,
       lng: campaignStore.form.lng,
       max_players: campaignStore.form.max_players || 4,
+      current_players: campaignStore.form.current_players || 0,
       start_level: campaignStore.form.start_level || 1,
       style_tags: campaignStore.form.style_tags || [],
       house_rules: campaignStore.form.house_rules || [],
