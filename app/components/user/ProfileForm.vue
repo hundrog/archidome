@@ -2,78 +2,73 @@
 // components/user/ProfileForm.vue
 // ─── Schema ───────────────────────────────────────────────────────────────────
 import { profileSchema } from "@/schemas/profile";
-import type { ProfileForm } from "@/schemas/profile";
+import type { Database } from "@/types/database.types";
+type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
 
 // ─── Setup ────────────────────────────────────────────────────────────────────
-const supabase = useSupabaseClient();
+const profileStore = useProfileStore();
 const user = useSupabaseUser();
 const toast = useToast();
-const loading = ref(false);
 
 // ─── Cargar perfil ────────────────────────────────────────────────────────────
-const { data: profile } = await useAsyncData("profile", async () => {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.value!.sub)
-    .single();
-
-  if (error) throw error;
-  return data;
+onMounted(async () => {
+  if (user.value) {
+    try {
+      await profileStore.fetchProfileById(user.value.sub);
+      if (profileStore.currentProfile) {
+        const profile = profileStore.currentProfile;
+        profileStore.form = {
+          full_name: profile.full_name ?? "",
+          username: profile.username ?? "",
+          bio: profile.bio ?? "",
+          discord: profile.discord ?? "",
+          whatsapp: profile.whatsapp ?? "",
+          twitter: profile.twitter ?? "",
+          instagram: profile.instagram ?? "",
+          website: profile.website ?? "",
+        };
+      }
+    } catch (error) {
+      toast.add({
+        title: "Error al cargar perfil",
+        description: "No se pudo cargar tu perfil. Intenta recargar la página.",
+        color: "error",
+      });
+    }
+  }
 });
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
-const state = reactive<Partial<ProfileForm>>({
-  full_name: profile.value?.full_name ?? "",
-  username: profile.value?.username ?? "",
-  bio: profile.value?.bio ?? "",
-  discord: profile.value?.discord ?? "",
-  whatsapp: profile.value?.whatsapp ?? "",
-  twitter: profile.value?.twitter ?? "",
-  instagram: profile.value?.instagram ?? "",
-  website: profile.value?.website ?? "",
-});
 
-const bioLength = computed(() => state.bio?.length ?? 0);
+const bioLength = computed(() => profileStore.form.bio?.length ?? 0);
 
 // ─── Submit ───────────────────────────────────────────────────────────────────
 async function onSubmit() {
-  loading.value = true;
-  try {
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        full_name: state.full_name,
-        username: state.username || null,
-        bio: state.bio || null,
-        discord: state.discord || null,
-        whatsapp: state.whatsapp || null,
-        twitter: state.twitter || null,
-        instagram: state.instagram || null,
-        website: state.website || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.value!.sub);
-
-    if (error) throw error;
-
-    toast.add({ title: "Perfil actualizado", color: "success" });
-  } catch (err: any) {
+  const payload: ProfileInsert = {
+    full_name: profileStore.form.full_name,
+    username: profileStore.form.username,
+    bio: profileStore.form.bio,
+    discord: profileStore.form.discord,
+    whatsapp: profileStore.form.whatsapp,
+    twitter: profileStore.form.twitter,
+    instagram: profileStore.form.instagram,
+    website: profileStore.form.website,
+    id: user.value!.sub,
+  };
+  profileStore.updateProfile(payload);
+  
     toast.add({
-      title: "Error al guardar",
-      description: err.message,
-      color: "error",
+      title: "¡Perfil actualizado!",
+      description: `"${profileStore.form.full_name}" fue guardado.`,
+      color: "success",
     });
-  } finally {
-    loading.value = false;
-  }
 }
 </script>
 
 <template>
   <UForm
     :schema="profileSchema"
-    :state="state"
+    :state="profileStore.form"
     class="space-y-8"
     @submit="onSubmit"
   >
@@ -86,7 +81,7 @@ async function onSubmit() {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <UFormField label="Display Name" name="full_name" required>
           <UInput
-            v-model="state.full_name"
+            v-model="profileStore.form.full_name"
             placeholder="The name that will be shown to other players"
             size="lg"
             class="w-full"
@@ -99,7 +94,7 @@ async function onSubmit() {
           hint="Solo letras, números y _"
         >
           <UInput
-            v-model="state.username"
+            v-model="profileStore.form.username"
             placeholder="tu_username"
             size="lg"
             class="w-full"
@@ -113,7 +108,7 @@ async function onSubmit() {
 
       <UFormField label="Bio" name="bio" :hint="`${bioLength}/300`">
         <UTextarea
-          v-model="state.bio"
+          v-model="profileStore.form.bio"
           placeholder="Cuéntanos un poco de ti..."
           :rows="3"
           size="lg"
@@ -140,7 +135,7 @@ async function onSubmit() {
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <UFormField label="Discord" name="discord">
           <UInput
-            v-model="state.discord"
+            v-model="profileStore.form.discord"
             placeholder="usuario#0000 o usuario"
             size="lg"
             class="w-full"
@@ -156,7 +151,7 @@ async function onSubmit() {
 
         <UFormField label="WhatsApp" name="whatsapp">
           <UInput
-            v-model="state.whatsapp"
+            v-model="profileStore.form.whatsapp"
             placeholder="+52 33 1234 5678"
             size="lg"
             class="w-full"
@@ -172,7 +167,7 @@ async function onSubmit() {
 
         <UFormField label="Twitter / X" name="twitter">
           <UInput
-            v-model="state.twitter"
+            v-model="profileStore.form.twitter"
             placeholder="tu_usuario"
             size="lg"
             class="w-full"
@@ -188,7 +183,7 @@ async function onSubmit() {
 
         <UFormField label="Instagram" name="instagram">
           <UInput
-            v-model="state.instagram"
+            v-model="profileStore.form.instagram"
             placeholder="tu_usuario"
             size="lg"
             class="w-full"
@@ -204,7 +199,7 @@ async function onSubmit() {
 
         <UFormField label="Sitio web" name="website" class="sm:col-span-2">
           <UInput
-            v-model="state.website"
+            v-model="profileStore.form.website"
             placeholder="https://tuwebsite.com"
             size="lg"
             class="w-full"
@@ -222,7 +217,7 @@ async function onSubmit() {
       <UButton
         type="submit"
         size="lg"
-        :loading="loading"
+        :loading="profileStore.loading"
         icon="i-lucide-save"
         label="Guardar cambios"
       />

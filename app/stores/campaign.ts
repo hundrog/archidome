@@ -1,5 +1,3 @@
-import { defineStore } from "pinia";
-import { useSupabaseClient } from "#imports";
 import type { Database } from "@/types/database.types";
 import type { CampaignForm } from "~/schemas/campaign";
 
@@ -36,41 +34,6 @@ function campaignMatchesSearch(campaign: Campaign, q: string): boolean {
     campaign.system.toLowerCase().includes(q) ||
     (campaign.description?.toLowerCase().includes(q) ?? false)
   );
-}
-
-interface CampaignStoreState {
-  // Campaign data
-  campaigns: Campaign[];
-  currentCampaign: Campaign | null;
-
-  // Form state
-  form: Partial<CampaignForm>;
-  isEditMode: boolean;
-
-  // Image handling
-  imageFile: File | null;
-  imagePreview: string | null;
-  existingImageUrl: string | null;
-  shouldDeleteExistingImage: boolean;
-
-  // Location
-  locationName: string;
-  resolvedCoords: { lat: number; lng: number } | null;
-
-  // Filtering (Grid page)
-  searchQuery: string;
-  modeFilter: string | null;
-  radiusKm: number;
-  nearbyOnly: boolean;
-  userCoords: { lat: number; lng: number } | null;
-
-  // Projects
-  projects: Project[];
-
-  // UI states
-  loading: boolean;
-  uploading: boolean;
-  error: string | null;
 }
 
 export const useCampaignStore = defineStore("campaign", () => {
