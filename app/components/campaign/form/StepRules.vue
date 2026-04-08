@@ -159,7 +159,7 @@ function removeRule(idx: number) {
             <button
               type="button"
               class="size-9 rounded-full bg-surface-high hover:bg-surface-bright flex items-center justify-center transition-colors ghost-border"
-              @click="increment('start_level', 20)"
+              @click="increment('start_level', 99)"
             >
               <UIcon name="i-lucide-plus" class="size-4 text-on-surface" />
             </button>
