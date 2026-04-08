@@ -18,8 +18,9 @@ async function fetchProjectData() {
   try {
     // Buscamos el proyecto por su slug
     const { data, error } = await supabase
-      .from('projects')
-      .select(`
+      .from("projects")
+      .select(
+        `
         id, 
         name, 
         created_at,
@@ -27,8 +28,9 @@ async function fetchProjectData() {
           username,
           avatar_url
         )
-      `)
-      .eq('slug', slug)
+      `,
+      )
+      .eq("slug", slug)
       .single();
 
     if (error) throw error;
@@ -37,19 +39,19 @@ async function fetchProjectData() {
     // Verificar si el usuario ya envió solicitud o es parte
     if (user.value) {
       const { data: memberData } = await supabase
-        .from('profile_projects')
-        .select('status')
-        .eq('project_id', data.id)
-        .eq('profile_id', user.value.sub)
+        .from("profile_projects")
+        .select("status")
+        .eq("project_id", data.id)
+        .eq("profile_id", user.value.sub)
         .single();
 
-    // console.log('Membership data:', profile_projects);
-      
+      // console.log('Membership data:', profile_projects);
+
       if (memberData) alreadyMember.value = true;
     }
   } catch (err: any) {
-    toast.add({ title: 'Proyecto no encontrado', color: 'error' });
-    await navigateTo('/'); // Redirigir si no existe
+    toast.add({ title: "Proyecto no encontrado", color: "error" });
+    await navigateTo("/"); // Redirigir si no existe
   } finally {
     loading.value = false;
   }
@@ -60,32 +62,34 @@ fetchProjectData();
 // ─── Enviar Solicitud ─────────────────────────────────────────────────────────
 async function requestJoin() {
   if (!user.value) {
-    return navigateTo('/login'); // Opcional: guardar URL para volver
+    return navigateTo("/login"); // Opcional: guardar URL para volver
   }
 
-  console.log(user.value)
+  console.log(user.value);
 
   sendingRequest.value = true;
   try {
-    const { error } = await supabase
-      .from('profile_projects')
-      .insert({
-        project_id: project.value.id,
-        profile_id: user.value.sub,
-        status: 'pending', // Por defecto, pero lo explicitamos
-        owner: false
-      });
+    const { error } = await supabase.from("profile_projects").insert({
+      project_id: project.value.id,
+      profile_id: user.value.sub,
+      status: "pending", // Por defecto, pero lo explicitamos
+      owner: false,
+    });
 
     if (error) throw error;
 
     alreadyMember.value = true;
-    toast.add({ 
-      title: 'Solicitud enviada', 
-      description: 'El owner del proyecto ha sido notificado.',
-      color: 'success' 
+    toast.add({
+      title: "Solicitud enviada",
+      description: "El owner del proyecto ha sido notificado.",
+      color: "success",
     });
   } catch (err: any) {
-    toast.add({ title: 'Error al enviar solicitud', description: err.message, color: 'error' });
+    toast.add({
+      title: "Error al enviar solicitud",
+      description: err.message,
+      color: "error",
+    });
   } finally {
     sendingRequest.value = false;
   }
@@ -97,18 +101,33 @@ async function requestJoin() {
     <UCard v-if="!loading && project" class="bg-gray-900 border-gray-800">
       <div class="space-y-6 text-center">
         <div class="space-y-2">
-          <UIcon name="i-lucide-scroll-text" class="size-12 text-primary-500 mx-auto" />
+          <UIcon
+            name="i-lucide-scroll-text"
+            class="size-12 text-primary-500 mx-auto"
+          />
           <h1 class="text-3xl font-bold text-white">{{ project.name }}</h1>
-          <p class="text-gray-400">Has sido invitado a unirte como Master a este proyecto.</p>
+          <p class="text-gray-400">
+            Has sido invitado a unirte como Master a este proyecto.
+          </p>
         </div>
 
         <USeparator />
 
         <div class="flex items-center justify-center gap-3">
-          <UAvatar :src="project.profiles?.avatar_url" :alt="project.profiles?.username" size="sm" />
+          <UAvatar
+            :src="project.profiles?.avatar_url"
+            :alt="project.profiles?.username"
+            size="sm"
+          />
           <div class="text-left">
-            <p class="text-xs text-gray-500 uppercase font-bold tracking-tighter">Creado por</p>
-            <p class="text-sm text-gray-200">{{ project.profiles?.username || 'Usuario anónimo' }}</p>
+            <p
+              class="text-xs text-gray-500 uppercase font-bold tracking-tighter"
+            >
+              Creado por
+            </p>
+            <p class="text-sm text-gray-200">
+              {{ project.profiles?.username || "Usuario anónimo" }}
+            </p>
           </div>
         </div>
 
@@ -122,7 +141,10 @@ async function requestJoin() {
             :loading="sendingRequest"
             @click="requestJoin()"
           />
-          <div v-else class="p-4 rounded-xl bg-primary-500/10 border border-primary-500/20 text-primary-400 flex items-center justify-center gap-2">
+          <div
+            v-else
+            class="p-4 rounded-xl bg-primary-500/10 border border-primary-500/20 text-primary-400 flex items-center justify-center gap-2"
+          >
             <UIcon name="i-lucide-clock" />
             <span>Solicitud pendiente o ya eres parte del equipo</span>
           </div>

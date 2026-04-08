@@ -56,12 +56,12 @@ async function onSubmit() {
     id: user.value!.sub,
   };
   profileStore.updateProfile(payload);
-  
-    toast.add({
-      title: "¡Perfil actualizado!",
-      description: `"${profileStore.form.full_name}" fue guardado.`,
-      color: "success",
-    });
+
+  toast.add({
+    title: "¡Perfil actualizado!",
+    description: `"${profileStore.form.full_name}" fue guardado.`,
+    color: "success",
+  });
 }
 </script>
 
@@ -173,10 +173,7 @@ async function onSubmit() {
             class="w-full"
           >
             <template #leading>
-              <UIcon
-                name="i-simple-icons-x"
-                class="size-4 text-white"
-              />
+              <UIcon name="i-simple-icons-x" class="size-4 text-white" />
             </template>
           </UInput>
         </UFormField>
