@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // ─── SEO ──────────────────────────────────────────────────────────────────────
 useSeoMeta({
-  title: () => "Arkana Tables",
+  title: () => "The Archidome",
   description: () => "Encuentra campañas de rol para unirte o inspírate para crear la tuya propia.",
 });
 </script>
