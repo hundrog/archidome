@@ -48,13 +48,37 @@ async function fetchProjects() {
   loading.value = true;
   try {
     const { data, error } = await supabase
-      .from("projects")
-      .select("*")
-      .eq("created_by", user.value!.sub)
-      .order("created_at", { ascending: true });
+      .from("profile_projects")
+      .select(
+        `
+      owner,
+      status,
+      projects (
+        id,
+        name,
+        slug,
+        created_at
+      )
+    `,
+      )
+      .eq("profile_id", user.value!.sub)
+      // Filtramos para traer solo donde eres dueño O donde ya te aceptaron
+      .or("owner.eq.true,status.eq.accepted")
+      .order("created_at", { foreignTable: "projects", ascending: false });
 
     if (error) throw error;
-    projects.value = data ?? [];
+
+    projects.value = data.map((item) => {
+      // Usamos Type Assertion para decirle que projects es un objeto único
+      const project =
+        item.projects as unknown as Database["public"]["Tables"]["projects"]["Row"];
+
+      return {
+        ...project,
+        isOwner: item.owner,
+        memberStatus: item.status,
+      };
+    });
   } catch (err: any) {
     toast.add({
       title: "Error al cargar proyectos",
