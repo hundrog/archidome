@@ -26,7 +26,7 @@ useSeoMeta({
         </p>
       </div>
         <!-- Components -->
-         <UserProjectsList />
+         <ProjectList />
     </div>
   </div>
 </template>
