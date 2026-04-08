@@ -20,7 +20,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      clientUrl: process.env.APP_URL,
+      clientUrl: '',
     },
   },
   supabase: {

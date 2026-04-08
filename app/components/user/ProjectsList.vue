@@ -8,6 +8,7 @@ type Project = Database["public"]["Tables"]["projects"]["Row"];
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const toast = useToast();
+const config = useRuntimeConfig();
 
 // ─── Estado ───────────────────────────────────────────────────────────────────
 const projects = ref<Project[]>([]);
@@ -19,6 +20,33 @@ const editingName = ref("");
 const deletingId = ref<string | null>(null);
 const showDeleteModal = ref(false);
 const projectToDelete = ref<Project | null>(null);
+const showInviteModal = ref(false);
+const projectToInvite = ref<Project | null>(null);
+
+// Función para abrir el modal de invitación
+function openInviteModal(project: Project) {
+  projectToInvite.value = project;
+  showInviteModal.value = true;
+}
+
+// Función para copiar al portapapeles
+async function copyInviteLink() {
+  if (!projectToInvite.value?.slug) return;
+  
+  // Construimos la URL basada en el origin actual
+  const url = `${config.public.clientUrl}/join/${projectToInvite.value.slug}`;
+  
+  try {
+    await navigator.clipboard.writeText(url);
+    toast.add({ 
+      title: "Enlace copiado", 
+      description: "Ya puedes compartirlo con tus jugadores",
+      color: "success" 
+    });
+  } catch (err) {
+    toast.add({ title: "Error al copiar", color: "error" });
+  }
+}
 
 // ─── Fetch ────────────────────────────────────────────────────────────────────
 async function fetchProjects() {
@@ -148,6 +176,54 @@ async function deleteProject() {
     deletingId.value = null;
   }
 }
+
+// Suscribirse a cambios en la tabla pivote para notificaciones en tiempo real 
+let inviteChannel: any = null;
+onMounted(() => {
+  // Suscribirse a inserciones en la tabla pivote
+  inviteChannel = supabase
+    .channel('nuevas-solicitudes')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'profile_projects',
+        // Opcional: Podrías filtrar por status 'pending'
+        filter: `status=eq.pending`
+      },
+      (payload) => {
+        // payload.new tiene la info de la nueva relación
+        const newRequest = payload.new;
+        
+        // Verificamos si el proyecto de la solicitud pertenece a la lista actual del usuario
+        const project = projects.value.find(p => p.id === newRequest.project_id);
+        
+        if (project) {
+          toast.add({
+            title: "Nueva solicitud",
+            description: `Alguien quiere unirse a "${project.name}"`,
+            color: "primary",
+            actions: [{
+              label: 'Ver solicitudes',
+              onClick: () => { /* Aquí podrías abrir un modal de gestión */ }
+            }]
+          });
+          
+          // Opcional: Refrescar datos o marcar el proyecto con un punto rojo
+          // fetchProjects(); 
+        }
+      }
+    )
+    .subscribe();
+});
+
+// Limpiar la suscripción al desmontar el componente
+onUnmounted(() => {
+  if (inviteChannel) {
+    supabase.removeChannel(inviteChannel);
+  }
+});
 </script>
 
 <template>
@@ -219,7 +295,6 @@ async function deleteProject() {
             class="flex-1"
             autofocus
             @keydown="onEditKeydown($event, project)"
-            @blur="saveEdit(project)"
           />
 
           <!-- Modo lectura -->
@@ -248,6 +323,14 @@ async function deleteProject() {
               />
             </template>
             <template v-else>
+              <UButton
+                icon="i-lucide-link"
+                size="xs"
+                color="primary"
+                variant="ghost"
+                title="Invitar Master"
+                @click="openInviteModal(project)"
+              />
               <UButton
                 icon="i-lucide-pencil"
                 size="xs"
@@ -300,6 +383,46 @@ async function deleteProject() {
             label="Eliminar"
             :loading="!!deletingId"
             @click="deleteProject"
+          />
+        </div>
+      </div>
+    </template>
+  </UModal>
+
+  <!-- ── Modal invitación ── -->
+   <UModal v-model:open="showInviteModal">
+    <template #content>
+      <div class="p-6 space-y-5">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-full bg-primary-500/10">
+            <UIcon name="i-lucide-user-plus" class="size-5 text-primary-400" />
+          </div>
+          <h3 class="text-lg font-semibold text-white">Invitar a {{ projectToInvite?.name }}</h3>
+        </div>
+
+        <p class="text-sm text-gray-400">
+          Cualquier Master con este enlace podrá solicitar unirse a tu proyecto.
+        </p>
+
+        <div class="flex items-center gap-2 p-2 rounded-lg bg-black/40 border border-gray-800">
+          <span class="flex-1 text-xs text-gray-500 truncate font-mono px-2">
+            {{ projectToInvite?.slug ? `${config.public.clientUrl}/join/${projectToInvite.slug}` : 'Generando...' }}
+          </span>
+          <UButton
+            icon="i-lucide-copy"
+            size="sm"
+            label="Copiar"
+            color="neutral"
+            @click="copyInviteLink"
+          />
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <UButton
+            variant="soft"
+            color="neutral"
+            label="Cerrar"
+            @click="showInviteModal = false"
           />
         </div>
       </div>
