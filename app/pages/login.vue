@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Provider } from '@supabase/supabase-js'
 const supabase = useSupabaseClient();
 const config = useRuntimeConfig();
 
@@ -15,20 +16,22 @@ const providers = [
   {
     label: "Google",
     icon: "i-simple-icons-google",
-    onClick: () => {},
+    onClick: () => {
+      signInWithProvider('google');
+    },
   },
   {
     label: "Discord",
     icon: "i-simple-icons-discord",
     onClick: () => {
-      signInWithDiscord();
+      signInWithProvider('discord');
     },
   },
 ];
 
-async function signInWithDiscord() {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "discord",
+async function signInWithProvider(provider: Provider) {
+  await supabase.auth.signInWithOAuth({
+    provider,
     options: {
       redirectTo: `${config.public.clientUrl}/confirm`,
     },
