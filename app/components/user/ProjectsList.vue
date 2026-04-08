@@ -2,6 +2,7 @@
 <script setup lang="ts">
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 import type { Database } from "@/types/database.types";
+import InboxRequests from "./InboxRequests.vue";
 type Project = Database["public"]["Tables"]["projects"]["Row"];
 
 // ─── Setup ────────────────────────────────────────────────────────────────────
@@ -351,6 +352,16 @@ onUnmounted(() => {
           </div>
         </div>
       </TransitionGroup>
+
+    </div>
+
+<USeparator />
+
+    <div class="space-y-2">
+      <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+        Solicitudes de unión
+      </h3>
+      <InboxRequests /> 
     </div>
   </div>
 
