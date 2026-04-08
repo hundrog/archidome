@@ -4,6 +4,8 @@ interface FetchProject {
   id: string;
   name: string;
 }
+import type { Database } from "@/types/database.types";
+type Project = Database["public"]["Tables"]["projects"]["Row"];
 
 const campaignStore = useCampaignStore();
 
@@ -14,17 +16,41 @@ const user = useSupabaseUser();
 const projects = ref<FetchProject[]>([]);
 
 async function fetchProjects() {
-  if (!user.value?.sub) return;
-
   try {
-    const { data } = await supabase
-      .from("projects")
-      .select("id, name")
-      .eq("created_by", user.value.sub);
-    projects.value = data ?? [];
-  } catch (error) {
-    console.error("Error fetching projects:", error);
-  }
+    const { data, error } = await supabase
+      .from("profile_projects")
+      .select(
+        `
+      owner,
+      status,
+      projects (
+        id,
+        name,
+        slug,
+        created_at
+      )
+    `,
+      )
+      .eq("profile_id", user.value!.sub)
+      // Filtramos para traer solo donde eres dueño O donde ya te aceptaron
+      .or("owner.eq.true,status.eq.accepted")
+      .order("created_at", { foreignTable: "projects", ascending: false });
+
+    if (error) throw error;
+
+    projects.value = data.map((item) => {
+      // Usamos Type Assertion para decirle que projects es un objeto único
+      const project =
+        item.projects as unknown as Project
+
+      return {
+        ...project,
+        isOwner: item.owner,
+        memberStatus: item.status,
+      };
+    });
+  } catch (err: any) {
+  } 
 }
 
 // Fetch projects when component mounts

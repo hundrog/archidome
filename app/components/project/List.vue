@@ -71,7 +71,7 @@ async function fetchProjects() {
     projects.value = data.map((item) => {
       // Usamos Type Assertion para decirle que projects es un objeto único
       const project =
-        item.projects as unknown as Database["public"]["Tables"]["projects"]["Row"];
+        item.projects as unknown as Project
 
       return {
         ...project,
