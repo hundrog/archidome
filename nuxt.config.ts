@@ -8,14 +8,14 @@ export default defineNuxtConfig({
       enabled: true,
     },
   },
-  modules: ["@nuxt/ui", "@nuxtjs/supabase", "@pinia/nuxt"],
+  modules: ["@nuxt/ui", "@nuxtjs/supabase", "@pinia/nuxt", "@nuxt/image"],
   css: ["~/assets/css/main.css"],
   colorMode: {
     preference: "dark",
   },
   vite: {
     optimizeDeps: {
-      include: ["@vue/devtools-core", "@vue/devtools-kit", "zod"],
+      include: ["@vue/devtools-core", "@vue/devtools-kit", "zod", "html-to-image"],
     },
   },
   runtimeConfig: {
@@ -40,9 +40,9 @@ export default defineNuxtConfig({
           "default-src 'self'",
           "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
           "style-src 'self' 'unsafe-inline'",
-          "img-src 'self' https: data: blob:",
+          "img-src 'self' https: data: blob: https://*.supabase.co https://*.discordapp.com https://*.googleusercontent.com",
           "worker-src blob:",
-          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://api.iconify.design https://api.simplesvg.com https://api.unisvg.com",
+          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://nominatim.openstreetmap.org https://api.iconify.design https://api.simplesvg.com https://api.unisvg.com https://*.supabase.co wss://*.supabase.co https://*.discordapp.com https://*.googleusercontent.com",
           "frame-ancestors 'none'",
           "base-uri 'self'",
         ].join("; "),

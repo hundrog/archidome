@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { toPng } from 'html-to-image';
 import type { Database } from "@/types/database.types";
 import { useCampaignStore } from "@/stores/campaign";
 
@@ -24,7 +23,6 @@ const user = useSupabaseUser();
 const toast = useToast();
 const store = useCampaignStore();
 const id = route.params.id as string;
-const downloading = ref(false);
 
 // ─── Fetch ────────────────────────────────────────────────────────────────────
 const { data: campaign, pending } = await useAsyncData(
@@ -116,41 +114,6 @@ const styleTags = computed(() => {
   return raw as string[];
 });
 
-async function downloadCampaignImage() {
-  const node = document.getElementById('share-card-container');
-  
-  if (!node || !campaign.value) {
-    toast.add({ title: 'Error', description: 'No se encontró el elemento a compartir', color: 'error' });
-    return;
-  }
-
-  downloading.value = true;
-  
-  try {
-    await nextTick();
-    await new Promise(resolve => setTimeout(resolve, 100));
-    // 1. Convertir HTML a Base64 PNG
-    // options: añadimos cacheBust para evitar problemas con imágenes externas (avatars)
-    const dataUrl = await toPng(node, { skipFonts: true, cacheBust: true, quality: 0.95 });
-
-    // 2. Crear un enlace temporal y forzar la descarga
-    const link = document.createElement('a');
-    // Nombre del archivo: slug-de-la-campana.png
-    const fileName = `${campaign.value.title.toLowerCase().replace(/ /g, '-')}-share.png`;
-    
-    link.download = fileName;
-    link.href = dataUrl;
-    link.click();
-
-    toast.add({ title: '¡Imagen generada!', description: 'Ya puedes compartirla con tus jugadores.', color: 'success' });
-  } catch (err: any) {
-    console.error('oops, something went wrong!', err);
-    toast.add({ title: 'Error al generar imagen', description: err.message, color: 'error' });
-  } finally {
-    downloading.value = false;
-  }
-}
-
 // ─── SEO ──────────────────────────────────────────────────────────────────────
 useSeoMeta({
   title: () => campaign.value?.title ?? "Campaña",
@@ -176,20 +139,8 @@ useSeoMeta({
       <section
         class="relative min-h-130 flex flex-col justify-end overflow-hidden"
       >
-        <!-- Botón volver -->
-        <div
-          class="relative z-10 px-6 pb-10 max-w-6xl mx-auto w-full space-y-3"
-        >
-          <NuxtLink
-            to="/campaigns"
-            class="inline-flex items-center gap-2 font-body text-label-xl text-on-surface-dim hover:text-on-surface transition-colors mb-6"
-          >
-            <UIcon name="i-lucide-arrow-left" class="size-4" />
-            Volver a campañas
-          </NuxtLink>
-        </div>
         <div class="absolute inset-0 z-0">
-          <img
+          <NuxtImg
             v-if="safeImageUrl"
             :src="safeImageUrl"
             :alt="campaign.title"
@@ -202,40 +153,13 @@ useSeoMeta({
           />
         </div>
 
-        <!-- Acciones dueño -->
-        <div class="absolute bottom-16 right-6 z-20 flex gap-2">
-          <UButton 
-            icon="i-lucide-image" 
-            color="primary" 
-            variant="ghost"
-            :loading="downloading"
-            @click="downloadCampaignImage"
-          />
-          <UButton
-            v-if="isOwner" 
-            :to="`/campaigns/${id}/edit`"
-            icon="i-lucide-pencil"
-            variant="soft"
-            color="secondary"
-            class="rounded-full"
-          />
-          <UButton
-            v-if="isOwner" 
-            icon="i-lucide-trash-2"
-            variant="soft"
-            color="error"
-            class="rounded-full"
-            @click="showDeleteModal = true"
-          />
-        </div>
-
         <!-- Contenido -->
         <div
           class="relative z-10 px-6 pb-10 max-w-6xl mx-auto w-full space-y-3"
         >
           <div class="flex flex-wrap gap-2">
             <span
-              class="label-metadata px-3 py-1 rounded-md"
+              class="label-metadata px-3 py-1 rounded-md flex items-center gap-1.5 whitespace-nowrap shrink-0"
               style="background: rgba(159, 167, 255, 0.15); color: #9fa7ff"
             >
               {{ campaign.system }}
@@ -410,11 +334,8 @@ useSeoMeta({
             >
               <p class="label-metadata text-on-surface-dim">Contacto</p>
               <div class="flex flex-wrap gap-2">
-                <ULink
+                <div
                   v-if="campaign.profiles?.discord"
-                  :href="`https://discord.com/users/${campaign.profiles.discord}`"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   class="flex items-center gap-2 px-3 py-2 rounded-full bg-surface-high hover:bg-surface-bright transition-colors font-body text-label-md text-on-surface"
                 >
                   <UIcon
@@ -422,13 +343,10 @@ useSeoMeta({
                     class="size-4"
                     style="color: #5865f2"
                   />
-                  Discord
-                </ULink>
-                <ULink
+                  {{ campaign.profiles?.discord }}
+                </div>
+                <div
                   v-if="campaign.profiles?.whatsapp"
-                  :href="`https://wa.me/${campaign.profiles.whatsapp.replace(/\D/g, '')}`"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   class="flex items-center gap-2 px-3 py-2 rounded-full bg-surface-high hover:bg-surface-bright transition-colors font-body text-label-md text-on-surface"
                 >
                   <UIcon
@@ -436,13 +354,10 @@ useSeoMeta({
                     class="size-4"
                     style="color: #25d366"
                   />
-                  WhatsApp
-                </ULink>
-                <ULink
+                  {{ campaign.profiles?.whatsapp }}
+                </div>
+                <div
                   v-if="campaign.profiles?.twitter"
-                  :href="`https://twitter.com/${campaign.profiles.twitter}`"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   class="flex items-center gap-2 px-3 py-2 rounded-full bg-surface-high hover:bg-surface-bright transition-colors font-body text-label-md text-on-surface"
                 >
                   <UIcon
@@ -450,12 +365,9 @@ useSeoMeta({
                     class="size-4 text-on-surface"
                   />
                   Twitter
-                </ULink>
-                <ULink
+                </div>
+                <div
                   v-if="campaign.profiles?.instagram"
-                  :href="`https://instagram.com/${campaign.profiles.instagram}`"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   class="flex items-center gap-2 px-3 py-2 rounded-full bg-surface-high hover:bg-surface-bright transition-colors font-body text-label-md text-on-surface"
                 >
                   <UIcon
@@ -464,7 +376,7 @@ useSeoMeta({
                     style="color: #e1306c"
                   />
                   Instagram
-                </ULink>
+                </div>
               </div>
             </div>
           </div>
@@ -554,48 +466,5 @@ useSeoMeta({
         </div>
       </section>
     </template>
-
-    <!-- ── Modal eliminar ── -->
-    <UModal v-model:open="showDeleteModal">
-      <template #content>
-        <div class="p-6 space-y-4">
-          <div class="flex items-center gap-3">
-            <div class="p-2 rounded-full bg-red-500/10">
-              <UIcon
-                name="i-lucide-triangle-alert"
-                class="size-5 text-red-400"
-              />
-            </div>
-            <h3 class="font-display text-headline-sm text-white">
-              Eliminar campaña
-            </h3>
-          </div>
-          <p class="font-body text-body-sm text-on-surface-dim">
-            ¿Estás seguro de que quieres eliminar
-            <span class="text-on-surface font-medium">{{
-              campaign?.title
-            }}</span
-            >? Esta acción no se puede deshacer.
-          </p>
-          <div class="flex justify-end gap-3 pt-2">
-            <UButton
-              variant="ghost"
-              label="Cancelar"
-              @click="showDeleteModal = false"
-            />
-            <UButton
-              color="error"
-              icon="i-lucide-trash-2"
-              label="Eliminar"
-              :loading="store.loading"
-              @click="deleteCampaign"
-            />
-          </div>
-        </div>
-      </template>
-    </UModal>
   </div>
-  <div class="fixed -top-1250 -left-1250 pointer-events-none aria-hidden">
-      <CampaignShareCard :campaign="campaign" id="share-card-container" />
-    </div>
 </template>
