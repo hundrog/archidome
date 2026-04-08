@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Database } from "@/types/database.types";
-import { useCampaignStore } from "~/stores/campaign";
+import { useCampaignStore } from "@/stores/campaign";
 
 type Campaign = Database["public"]["Tables"]["campaigns"]["Row"] & {
   profiles?: {
