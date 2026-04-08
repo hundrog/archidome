@@ -33,6 +33,9 @@ export default defineNuxtConfig({
       saveRedirectToCookie: false,
     },
   },
+  image: {
+    domains: [process.env.SUPABASE_URL ? new URL(process.env.SUPABASE_URL).hostname : '']
+  },
   routeRules: {
     "/**": {
       headers: {
