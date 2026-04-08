@@ -10,9 +10,8 @@ const baseItems = [
     to: "https://www.buymeacoffee.com/rollatable",
     target: "_blank",
     label: "Buy me a coffee",
-    slot: "logo",
-    class:
-      "font-cookie text-lg px-1 py-1",
+    icon: "i-simple-icons-buymeacoffee",
+    auth: false,
   },
   {
     label: "Crear campaña",
@@ -61,16 +60,7 @@ const logout = async () => {
         </div>
       </template>
 
-      <UNavigationMenu :items="items" :ui="{ list: 'gap-2' }">
-        <template #logo="{ item }">
-          <img
-            src="/bmc-logo-no-background.png"
-            alt="Rollatable"
-            class="h-4 w-auto"
-          />
-          <span>{{ (item as NavigationMenuItem).label }}</span>
-        </template>
-      </UNavigationMenu>
+      <UNavigationMenu :items="items" :ui="{ list: 'gap-2' }" />
 
       <template #right>
         <UButton

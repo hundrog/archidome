@@ -28,7 +28,7 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: "/login",
       callback: "/confirm",
-      include: ["campaigns/[id]/edit", "/campaigns/new", "/settings"],
+      include: ["campaigns/[id]/edit", "/campaigns/new", "/settings", "/projects", "/projects/*"],
       exclude: ["/campaigns", "/campaigns/[id]"],
       saveRedirectToCookie: false,
     },
