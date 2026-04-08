@@ -3,8 +3,7 @@ type Database = import("@/types/database.types").Database;
 type ProjectRow = Database["public"]["Tables"]["projects"]["Row"];
 type CampaignRow = Database["public"]["Tables"]["campaigns"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
-type ProfileProjectRow =
-  Database["public"]["Tables"]["profile_projects"]["Row"];
+type ProfileProjectRow =Database["public"]["Tables"]["profile_projects"]["Row"];
 
 type ProjectFull = ProjectRow & {
   campaigns: (CampaignRow & {
@@ -48,7 +47,6 @@ const fetchProjectDetails = async (projectId: string) => {
       profiles ( id, username, avatar_url )
     )
   `)
-    .eq("profile_projects.status", "accepted")
     .eq("id", projectId)
     .single();
 
@@ -56,14 +54,6 @@ const fetchProjectDetails = async (projectId: string) => {
 
   project.value = data as unknown as ProjectFull;
 };
-
-// Filtramos solo los que ya fueron aceptados para la lista de staff
-const acceptedMasters = computed(() => {
-  return (
-    project.value?.profile_projects?.filter((m) => m.status === "accepted") ||
-    []
-  );
-});
 
 onMounted(async () => {
   try {
@@ -161,7 +151,7 @@ useSeoMeta({
 </script>
 <template>
   <div class="min-h-screen bg-surface">
-    <div class="max-w-3xl mx-auto px-4 py-10 space-y-8">
+    <div class="max-w-6xl mx-auto px-4 py-10 space-y-8">
       <!-- ── Encabezado ── -->
       <div>
         <NuxtLink
@@ -220,7 +210,7 @@ useSeoMeta({
           />
         </template>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div class="md:col-span-2 space-y-4">
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-bold text-white flex items-center gap-2">
@@ -234,7 +224,7 @@ useSeoMeta({
             />
           </div>
 
-          <div class="grid grid-cols-1 gap-3">
+          <div class="grid grid-cols-2 gap-3">
             <div
               v-if="!project?.campaigns.length"
               class="p-8 text-center text-gray-500 border-2 border-dashed border-gray-800 rounded-xl"
@@ -257,33 +247,10 @@ useSeoMeta({
           </h3>
 
           <div
-            class="bg-gray-900 rounded-xl border border-gray-800 divide-y divide-gray-800"
+          v-if="project"
+            class=""
           >
-            <div
-              v-for="member in acceptedMasters"
-              :key="member.profiles.id"
-              class="p-3 flex items-center gap-3"
-            >
-              <UAvatar :src="member.profiles.avatar_url || ''" size="sm" />
-              <div class="flex-1">
-                <p class="text-sm font-medium text-gray-200">
-                  {{ member.profiles.username }}
-                </p>
-                <p
-                  v-if="member.owner"
-                  class="text-[10px] uppercase text-primary-500 font-bold"
-                >
-                  Arquitecto
-                </p>
-              </div>
-              <UButton
-                v-if="!member.owner"
-                icon="i-lucide-user-minus"
-                variant="ghost"
-                color="error"
-                size="xs"
-              />
-            </div>
+            <ProjectStaffAdmin :project="project" @refresh="fetchProjectDetails(project.id)" />
           </div>
         </div>
       </div>
