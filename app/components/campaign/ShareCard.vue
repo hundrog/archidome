@@ -114,6 +114,13 @@ const styleTags = computed(() => {
   return raw as string[];
 });
 
+const proxiedAvatar = computed(() => {
+  const originalUrl = campaign.value?.profiles?.avatar_url;
+  return originalUrl 
+    ? `/api/proxy-image?url=${encodeURIComponent(originalUrl)}` 
+    : '/default-avatar.png';
+});
+
 // ─── SEO ──────────────────────────────────────────────────────────────────────
 useSeoMeta({
   title: () => campaign.value?.title ?? "Campaña",
@@ -290,9 +297,9 @@ useSeoMeta({
           <div class="bg-surface-low rounded-xl p-6 space-y-5">
             <h3 class="label-metadata text-on-surface-dim">Game Master</h3>
             <div class="flex items-start gap-4">
-              <img
+              <UAvatar
                 v-if="campaign.profiles?.avatar_url"
-                :src="campaign.profiles.avatar_url"
+                :src="proxiedAvatar"
                 :alt="campaign.profiles.full_name ?? 'GM'"
                 class="size-8 rounded-full object-cover ring-2 ring-surface-variant shrink-0"
               />
