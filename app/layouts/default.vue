@@ -12,13 +12,19 @@ const baseItems = [
     label: "Buy me a coffee",
     slot: "logo",
     class:
-      "font-cookie text-lg bg-yellow-400 text-gray-900 rounded-full hover:text-yellow-900 transition-colors duration-200 px-3 py-1",
+      "font-cookie text-lg px-1 py-1",
   },
   {
     label: "Crear campaña",
     to: "/campaigns/new",
     icon: "i-lucide-plus",
     auth: false,
+  },
+  {
+    label: "Proyectos",
+    to: "/projects",
+    icon: "i-lucide-folder",
+    auth: true,
   },
   {
     label: "Settings",

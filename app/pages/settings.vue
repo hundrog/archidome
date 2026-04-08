@@ -4,7 +4,6 @@ const user = useSupabaseUser();
 
 const tabs = [
   { label: "Perfil", slot: "profile", icon: "i-lucide-user" },
-  { label: "Proyectos", slot: "projects", icon: "i-lucide-folder" },
   { label: "Cuenta", slot: "account", icon: "i-lucide-shield" },
 ];
 
@@ -45,13 +44,6 @@ const logout = async () => {
         <template #profile>
           <div class="pt-6">
             <UserProfileForm />
-          </div>
-        </template>
-
-        <!-- Proyectos -->
-        <template #projects>
-          <div class="pt-6">
-            <UserProjectsList />
           </div>
         </template>
 

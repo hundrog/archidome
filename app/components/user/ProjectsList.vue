@@ -16,11 +16,6 @@ const projects = ref<Project[]>([]);
 const loading = ref(false);
 const newName = ref("");
 const creating = ref(false);
-const editingId = ref<string | null>(null);
-const editingName = ref("");
-const deletingId = ref<string | null>(null);
-const showDeleteModal = ref(false);
-const projectToDelete = ref<Project | null>(null);
 const showInviteModal = ref(false);
 const projectToInvite = ref<Project | null>(null);
 
@@ -98,83 +93,6 @@ async function createProject() {
     });
   } finally {
     creating.value = false;
-  }
-}
-
-// ─── Editar inline ────────────────────────────────────────────────────────────
-function startEdit(project: Project) {
-  editingId.value = project.id;
-  editingName.value = project.name;
-}
-
-function cancelEdit() {
-  editingId.value = null;
-  editingName.value = "";
-}
-
-async function saveEdit(project: Project) {
-  if (!editingName.value.trim() || editingName.value === project.name) {
-    cancelEdit();
-    return;
-  }
-
-  try {
-    const { error } = await supabase
-      .from("projects")
-      .update({ name: editingName.value.trim() })
-      .eq("id", project.id);
-
-    if (error) throw error;
-
-    project.name = editingName.value.trim();
-    cancelEdit();
-    toast.add({ title: "Proyecto actualizado", color: "success" });
-  } catch (err: any) {
-    toast.add({
-      title: "Error al actualizar",
-      description: err.message,
-      color: "error",
-    });
-  }
-}
-
-function onEditKeydown(event: KeyboardEvent, project: Project) {
-  if (event.key === "Enter") saveEdit(project);
-  if (event.key === "Escape") cancelEdit();
-}
-
-// ─── Eliminar ─────────────────────────────────────────────────────────────────
-function confirmDelete(project: Project) {
-  projectToDelete.value = project;
-  showDeleteModal.value = true;
-}
-
-async function deleteProject() {
-  if (!projectToDelete.value) return;
-  deletingId.value = projectToDelete.value.id;
-
-  try {
-    const { error } = await supabase
-      .from("projects")
-      .delete()
-      .eq("id", projectToDelete.value.id);
-
-    if (error) throw error;
-
-    projects.value = projects.value.filter(
-      (p) => p.id !== projectToDelete.value!.id,
-    );
-    showDeleteModal.value = false;
-    projectToDelete.value = null;
-    toast.add({ title: "Proyecto eliminado", color: "success" });
-  } catch (err: any) {
-    toast.add({
-      title: "Error al eliminar",
-      description: err.message,
-      color: "error",
-    });
-  } finally {
-    deletingId.value = null;
   }
 }
 
@@ -294,67 +212,29 @@ onUnmounted(() => {
         >
           <UIcon name="i-lucide-folder" class="size-4 text-gray-500 shrink-0" />
 
-          <!-- Modo edición -->
-          <UInput
-            v-if="editingId === project.id"
-            v-model="editingName"
-            size="sm"
-            class="flex-1"
-            autofocus
-            @keydown="onEditKeydown($event, project)"
-          />
-
           <!-- Modo lectura -->
-          <span v-else class="flex-1 text-sm text-gray-200 truncate">
+          <span class="flex-1 text-sm text-gray-200 truncate">
             {{ project.name }}
           </span>
 
           <!-- Acciones -->
           <div class="flex items-center gap-1 shrink-0">
-            <template v-if="editingId === project.id">
-              <UButton
-                icon="i-lucide-check"
-                size="xs"
-                color="success"
-                variant="ghost"
-                title="Guardar"
-                @click="saveEdit(project)"
-              />
-              <UButton
-                icon="i-lucide-x"
-                size="xs"
-                color="neutral"
-                variant="ghost"
-                title="Cancelar"
-                @click="cancelEdit"
-              />
-            </template>
-            <template v-else>
-              <UButton
-                icon="i-lucide-link"
-                size="xs"
-                color="primary"
-                variant="ghost"
-                title="Invitar Master"
-                @click="openInviteModal(project)"
-              />
-              <UButton
-                icon="i-lucide-pencil"
-                size="xs"
-                color="neutral"
-                variant="ghost"
-                title="Editar"
-                @click="startEdit(project)"
-              />
-              <UButton
-                icon="i-lucide-trash-2"
-                size="xs"
-                color="error"
-                variant="ghost"
-                title="Eliminar"
-                @click="confirmDelete(project)"
-              />
-            </template>
+            <UButton
+              :to="`/projects/${project.id}`"
+              icon="i-lucide-eye"
+              size="sm"
+              color="primary"
+              variant="ghost"
+              title="Ver detalles"
+            />
+            <UButton
+              icon="i-lucide-link"
+              size="sm"
+              color="neutral"
+              variant="ghost"
+              title="Invitar Master"
+              @click="openInviteModal(project)"
+            />
           </div>
         </div>
       </TransitionGroup>
@@ -369,41 +249,6 @@ onUnmounted(() => {
       <InboxRequests />
     </div>
   </div>
-
-  <!-- ── Modal eliminar ── -->
-  <UModal v-model:open="showDeleteModal">
-    <template #content>
-      <div class="p-6 space-y-4">
-        <div class="flex items-center gap-3">
-          <div class="p-2 rounded-full bg-red-500/10">
-            <UIcon name="i-lucide-triangle-alert" class="size-5 text-red-400" />
-          </div>
-          <h3 class="text-lg font-semibold text-white">Eliminar proyecto</h3>
-        </div>
-
-        <p class="text-sm text-gray-400">
-          ¿Eliminar
-          <span class="text-white font-medium">{{ projectToDelete?.name }}</span
-          >? Las campañas asociadas también serán eliminadas.
-        </p>
-
-        <div class="flex justify-end gap-3 pt-2">
-          <UButton
-            variant="ghost"
-            label="Cancelar"
-            @click="showDeleteModal = false"
-          />
-          <UButton
-            color="error"
-            icon="i-lucide-trash-2"
-            label="Eliminar"
-            :loading="!!deletingId"
-            @click="deleteProject"
-          />
-        </div>
-      </div>
-    </template>
-  </UModal>
 
   <!-- ── Modal invitación ── -->
   <UModal v-model:open="showInviteModal">
