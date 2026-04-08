@@ -32,7 +32,7 @@ async function fetchRequests() {
       profiles(username, avatar_url)
     `,
     )
-    .eq("projects.created_by", user.value!.id)
+    .eq("projects.created_by", user.value!.sub)
     .eq("status", "pending");
 
   if (!error) requests.value = data as ProfileProject[];
