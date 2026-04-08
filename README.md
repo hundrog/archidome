@@ -38,8 +38,7 @@ npm install
 ```
 
 **Environment Setup:**
-Create a .env file based on .env.example with your Supabase credentials:
-Fragmento de código
+Create a .env file, add your supabase credentials (as described in their docs) and add your client_url
 
 ```javascript
 SUPABASE_URL=https://your-project.supabase.co
