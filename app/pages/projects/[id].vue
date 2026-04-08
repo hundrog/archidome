@@ -18,16 +18,21 @@ type Campaign = Database["public"]["Tables"]["campaigns"]["Row"] & {
   profiles?: Pick<ProfileRow, "full_name" | "username" | "avatar_url">;
 };
 
-
 const projectId = useRoute().params.id as string;
 const project = ref<ProjectFull | null>(null);
 const toast = useToast();
 const supabase = useSupabaseClient();
+const user = useSupabaseUser();
 const deletingId = ref<string | null>(null);
 const showDeleteModal = ref(false);
 const projectToDelete = ref<ProjectRow | null>(null);
 const editingId = ref<string | null>(null);
 const editingName = ref("");
+
+const isOwner = computed(() => {
+  const owner = project.value?.profile_projects.find(pp => pp.owner);
+  return owner?.profiles.id === user.value?.sub;
+});
 
 const fetchProjectDetails = async (projectId: string) => {
   const { data, error } = await supabase
@@ -151,7 +156,7 @@ useSeoMeta({
 </script>
 <template>
   <div class="min-h-screen bg-surface">
-    <div class="max-w-6xl mx-auto px-4 py-10 space-y-8">
+    <div class="max-w-7xl mx-auto px-4 py-10 space-y-8">
       <!-- ── Encabezado ── -->
       <div>
         <NuxtLink
@@ -173,7 +178,7 @@ useSeoMeta({
         <h1 v-else class="font-display text-display-sm text-on-surface">
           {{ project?.name || "Proyecto sin nombre" }}
         </h1>
-        <template v-if="editingId === project?.id">
+        <template v-if="isOwner && editingId === project?.id">
           <UButton
             icon="i-lucide-check"
             size="xs"
@@ -191,7 +196,7 @@ useSeoMeta({
             @click="cancelEdit"
           />
         </template>
-        <template v-else>
+        <template v-else-if="isOwner">
           <UButton
             icon="i-lucide-pencil"
             size="xs"
