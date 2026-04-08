@@ -2,12 +2,9 @@
 // components/campaign/Card.vue
 import type { Database } from "@/types/database.types";
 
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type Campaign = Database["public"]["Tables"]["campaigns"]["Row"] & {
-  profiles?: {
-    full_name: string | undefined;
-    username: string | null;
-    avatar_url: string | null;
-  };
+  profiles?: Pick<ProfileRow, "full_name" | "username" | "avatar_url">;
 };
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -116,7 +113,7 @@ const PLACEHOLDER =
           <img
             v-if="campaign.profiles?.avatar_url"
             :src="campaign.profiles.avatar_url"
-            :alt="campaign.profiles.full_name"
+            :alt="campaign.profiles.full_name || campaign.profiles.username || 'GM'"
             class="size-6 rounded-full object-cover shrink-0"
           />
           <div

@@ -7,11 +7,18 @@ type ProfileProjectRow =
   Database["public"]["Tables"]["profile_projects"]["Row"];
 
 type ProjectFull = ProjectRow & {
-  campaigns: CampaignRow[];
+  campaigns: (CampaignRow & {
+    profiles?: Pick<ProfileRow, "username" | "avatar_url">;
+  })[];
   profile_projects: (ProfileProjectRow & {
     profiles: Pick<ProfileRow, "id" | "username" | "avatar_url">;
   })[];
 };
+
+type Campaign = Database["public"]["Tables"]["campaigns"]["Row"] & {
+  profiles?: Pick<ProfileRow, "full_name" | "username" | "avatar_url">;
+};
+
 
 const projectId = useRoute().params.id as string;
 const project = ref<ProjectFull | null>(null);
@@ -26,21 +33,21 @@ const editingName = ref("");
 const fetchProjectDetails = async (projectId: string) => {
   const { data, error } = await supabase
     .from("projects")
-    .select(
-      `
+    .select(`
     *,
-      campaigns (*),
-      profile_projects (
-        status,
-        owner,
-        profiles (
-          id,
-          username,
-          avatar_url
-        )
+    campaigns (
+      *,
+      profiles:user_id (
+        username,
+        avatar_url
       )
-    `,
+    ),
+    profile_projects (
+      status,
+      owner,
+      profiles ( id, username, avatar_url )
     )
+  `)
     .eq("profile_projects.status", "accepted")
     .eq("id", projectId)
     .single();
@@ -234,21 +241,13 @@ useSeoMeta({
             >
               No tienes campañas por ahora.
             </div>
-            <UCard
+
+            <CampaignCard
               v-for="campaign in project?.campaigns"
               :key="campaign.id"
-              class="bg-gray-900/50"
-            >
-              <div class="flex justify-between items-start">
-                <div>
-                  <p class="font-semibold text-primary-400">
-                    {{ campaign.title }}
-                  </p>
-                  <p class="text-xs text-gray-500">{{ campaign.system }}</p>
-                </div>
-                <UBadge size="xs" variant="soft">{{ campaign.status }}</UBadge>
-              </div>
-            </UCard>
+              :campaign="campaign as Campaign"
+            />
+
           </div>
         </div>
 
