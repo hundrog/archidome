@@ -1,5 +1,11 @@
 <script lang="ts" setup>
 navigateTo("/campaigns");
+
+// ─── SEO ──────────────────────────────────────────────────────────────────────
+useSeoMeta({
+  title: () => "Arkana Tables",
+  description: () => "Encuentra campañas de rol para unirte o inspírate para crear la tuya propia.",
+});
 </script>
 <template>
   <div class="flex flex-col items-center justify-center h-full gap-6">

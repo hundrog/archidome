@@ -11,6 +11,12 @@ const logout = async () => {
   await useSupabaseClient().auth.signOut();
   navigateTo("/login");
 };
+
+// ─── SEO ──────────────────────────────────────────────────────────────────────
+useSeoMeta({
+  title: () => "Configuración",
+  description: () => "Administra tu cuenta y preferencias.",
+});
 </script>
 
 <template>

@@ -145,6 +145,12 @@ async function deleteProject() {
     deletingId.value = null;
   }
 }
+
+// ─── SEO ──────────────────────────────────────────────────────────────────────
+useSeoMeta({
+  title: () => project.value ? project.value.name : "Proyecto no encontrado",
+  description: () => "Detalles del proyecto " + (project.value ? project.value.name : ""),
+});
 </script>
 <template>
   <div class="min-h-screen bg-surface">

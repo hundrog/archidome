@@ -173,6 +173,12 @@ async function onSubmit() {
     loading.value = false;
   }
 }
+
+// ─── SEO ──────────────────────────────────────────────────────────────────────
+useSeoMeta({
+  title: () => campaignStore.form.title ?? "Editar Campaña",
+  description: () => campaignStore.form.description ?? "",
+});
 </script>
 
 <template>

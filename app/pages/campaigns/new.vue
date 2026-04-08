@@ -139,6 +139,12 @@ async function onSubmit() {
     loading.value = false;
   }
 }
+
+// ─── SEO ──────────────────────────────────────────────────────────────────────
+useSeoMeta({
+  title: () => "Nueva Campaña",
+  description: () => "Crea una nueva campaña para tu proyecto.",
+});
 </script>
 
 <template>

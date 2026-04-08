@@ -1,3 +1,10 @@
+<script setup lang="ts">
+// ─── SEO ──────────────────────────────────────────────────────────────────────
+useSeoMeta({
+  title: () => "Proyectos",
+  description: () => "Administra tus proyectos y campañas. Crea, edita y organiza tus aventuras.",
+});
+</script>
 <template>
   <div class="min-h-screen bg-surface">
     <div class="max-w-3xl mx-auto px-4 py-10 space-y-8">
