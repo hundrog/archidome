@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// components/campaign/SearchBar.vue
-
 const props = defineProps<{
   search: string;
   mode: string | null;
@@ -19,12 +17,14 @@ const emit = defineEmits<{
   toggleNearby: [];
 }>();
 
-const modeOptions = [
-  { label: "Todos los modos", value: null },
-  { label: "Remoto", value: "remote" },
-  { label: "Presencial", value: "in_person" },
-  { label: "Híbrido", value: "hybrid" },
-];
+const { t } = useI18n();
+
+const modeOptions = computed(() => [
+  { label: t("campaign.search.modeAll"), value: null },
+  { label: t("campaign.playMode.remote"), value: "remote" },
+  { label: t("campaign.playMode.in_person"), value: "in_person" },
+  { label: t("campaign.playMode.hybrid"), value: "hybrid" },
+]);
 
 const radiusOptions = [
   { label: "2 km", value: 2 },
@@ -33,25 +33,14 @@ const radiusOptions = [
   { label: "20 km", value: 20 },
 ];
 
-function onModeChange(event: Event) {
-  const val = (event.target as HTMLSelectElement).value;
-  emit("update:mode", val === "" ? null : val);
-}
-
 function onSearchInput(event: Event) {
   emit("update:search", (event.target as HTMLInputElement).value);
-}
-
-function onRadiusChange(event: Event) {
-  emit("update:radius", Number((event.target as HTMLSelectElement).value));
 }
 </script>
 
 <template>
   <div class="w-full mx-auto">
-    <!-- ── Contenedor glass ── -->
     <div class="glass ghost-border rounded-xl p-1.5 gap-1 grid grid-cols-8">
-      <!-- Búsqueda por texto -->
       <div
         class="flex items-center gap-3 flex-1 px-4 py-2 col-span-8 lg:col-span-4"
       >
@@ -62,13 +51,12 @@ function onRadiusChange(event: Event) {
         <input
           :value="search"
           type="text"
-          placeholder="Sistema, título, trama…"
+          :placeholder="$t('campaign.search.placeholder')"
           class="flex-1 bg-transparent text-on-surface placeholder:text-on-surface-dim text-body-md outline-none font-body"
           @input="onSearchInput"
         />
       </div>
 
-      <!-- Modo de juego -->
       <div
         class="flex items-center gap-1 px-4 py-2 col-span-4 lg:col-span-2 lg:gap-3"
       >
@@ -84,12 +72,11 @@ function onRadiusChange(event: Event) {
           variant="ghost"
           size="md"
           class="flex-1 bg-transparent text-on-surface text-body-md outline-none font-body cursor-pointer"
-          placeholder="Todos los modos"
+          :placeholder="$t('campaign.search.modeAll')"
           @update:model-value="(val) => emit('update:mode', val)"
         />
       </div>
 
-      <!-- Cercanía -->
       <div
         class="flex items-center gap-1 px-4 py-2 col-span-4 lg:col-span-2 lg:gap-3"
       >
@@ -104,12 +91,11 @@ function onRadiusChange(event: Event) {
           :disabled="geoLoading"
           @click="emit('toggleNearby')"
         >
-          <span v-if="geoLoading">Buscando…</span>
-          <span v-else-if="nearby">Distancia</span>
-          <span v-else>Cualquier lugar</span>
+          <span v-if="geoLoading">{{ $t("campaign.search.searching") }}</span>
+          <span v-else-if="nearby">{{ $t("campaign.search.distance") }}</span>
+          <span v-else>{{ $t("campaign.search.anywhere") }}</span>
         </button>
 
-        <!-- Radio selector cuando está activo -->
         <Transition name="fade" v-if="nearby">
           <USelect
             key="nearby-radius"
@@ -125,15 +111,12 @@ function onRadiusChange(event: Event) {
       </div>
     </div>
 
-    <!-- Error geo -->
     <p v-if="geoError && !hasCoords" class="text-xs text-error mt-2 px-2">
       {{ geoError }}
     </p>
 
-    <!-- Hint cercanía activa -->
     <p v-if="nearby && hasCoords" class="text-xs text-on-surface-dim mt-2 px-2">
-      Presenciales e híbridas a menos de {{ radius }} km · Las remotas siempre
-      aparecen
+      {{ $t("campaign.search.nearbyHint", { radius }) }}
     </p>
   </div>
 </template>

@@ -1,28 +1,26 @@
 <script setup lang="ts">
-// pages/settings.vue
 const user = useSupabaseUser();
+const { t } = useI18n();
 
-const tabs = [
-  { label: "Perfil", slot: "profile", icon: "i-lucide-user" },
-  { label: "Cuenta", slot: "account", icon: "i-lucide-shield" },
-];
+const tabs = computed(() => [
+  { label: t("pages.settings.tabProfile"), slot: "profile", icon: "i-lucide-user" },
+  { label: t("pages.settings.tabAccount"), slot: "account", icon: "i-lucide-shield" },
+]);
 
 const logout = async () => {
   await useSupabaseClient().auth.signOut();
   navigateTo("/login");
 };
 
-// ─── SEO ──────────────────────────────────────────────────────────────────────
 useSeoMeta({
-  title: () => "Configuración",
-  description: () => "Administra tu cuenta y preferencias.",
+  title: () => t("pages.settings.title"),
+  description: () => t("pages.settings.description"),
 });
 </script>
 
 <template>
   <div class="min-h-screen bg-surface text-on-surface px-4 py-10">
     <div class="max-w-3xl mx-auto space-y-8">
-      <!-- ── Encabezado ── -->
       <div class="flex items-center gap-4">
         <img
           v-if="user?.user_metadata?.avatar_url"
@@ -38,44 +36,41 @@ useSeoMeta({
         </div>
         <div>
           <h1 class="text-2xl font-bold text-white">
-            {{ user?.user_metadata?.full_name ?? "Mi cuenta" }}
+            {{ user?.user_metadata?.full_name ?? $t("pages.settings.myAccount") }}
           </h1>
           <p class="text-sm text-gray-400">{{ user?.email }}</p>
         </div>
       </div>
 
-      <!-- ── Tabs ── -->
       <UTabs :items="tabs">
-        <!-- Perfil -->
         <template #profile>
           <div class="pt-6">
             <UserProfileForm />
           </div>
         </template>
 
-        <!-- Cuenta -->
         <template #account>
           <div class="pt-6 space-y-6">
             <div class="space-y-2">
               <h3
                 class="text-sm font-semibold text-gray-400 uppercase tracking-wider"
               >
-                Sesión
+                {{ $t("pages.settings.session") }}
               </h3>
               <div
                 class="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-900 border border-gray-800"
               >
                 <div class="flex items-center gap-3">
                   <UIcon name="i-lucide-log-out" class="size-4 text-gray-500" />
-                  <span class="text-sm text-gray-300"
-                    >Cerrar sesión en este dispositivo</span
-                  >
+                  <span class="text-sm text-gray-300">{{
+                    $t("pages.settings.signOutDevice")
+                  }}</span>
                 </div>
                 <UButton
                   variant="ghost"
                   color="neutral"
                   size="sm"
-                  label="Cerrar sesión"
+                  :label="$t('pages.settings.signOut')"
                   @click="logout"
                 />
               </div>

@@ -1,16 +1,13 @@
 <script setup lang="ts">
-// components/user/ProfileForm.vue
-// ─── Schema ───────────────────────────────────────────────────────────────────
 import { profileSchema } from "@/schemas/profile";
 import type { Database } from "@/types/database.types";
 type ProfileInsert = Database["public"]["Tables"]["profiles"]["Insert"];
 
-// ─── Setup ────────────────────────────────────────────────────────────────────
 const profileStore = useProfileStore();
 const user = useSupabaseUser();
 const toast = useToast();
+const { t } = useI18n();
 
-// ─── Cargar perfil ────────────────────────────────────────────────────────────
 onMounted(async () => {
   if (user.value) {
     try {
@@ -30,19 +27,16 @@ onMounted(async () => {
       }
     } catch (error) {
       toast.add({
-        title: "Error al cargar perfil",
-        description: "No se pudo cargar tu perfil. Intenta recargar la página.",
+        title: t("user.profile.loadError"),
+        description: t("user.profile.loadErrorDesc"),
         color: "error",
       });
     }
   }
 });
 
-// ─── Estado ───────────────────────────────────────────────────────────────────
-
 const bioLength = computed(() => profileStore.form.bio?.length ?? 0);
 
-// ─── Submit ───────────────────────────────────────────────────────────────────
 async function onSubmit() {
   const payload: ProfileInsert = {
     full_name: profileStore.form.full_name,
@@ -58,8 +52,10 @@ async function onSubmit() {
   profileStore.updateProfile(payload);
 
   toast.add({
-    title: "¡Perfil actualizado!",
-    description: `"${profileStore.form.full_name}" fue guardado.`,
+    title: t("user.profile.updatedTitle"),
+    description: t("user.profile.updatedDesc", {
+      name: profileStore.form.full_name,
+    }),
     color: "success",
   });
 }
@@ -72,30 +68,33 @@ async function onSubmit() {
     class="space-y-8"
     @submit="onSubmit"
   >
-    <!-- ── Datos básicos ── -->
     <div class="space-y-4">
       <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-        Datos básicos
+        {{ $t("user.profile.basicData") }}
       </h3>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <UFormField label="Display Name" name="full_name" required>
+        <UFormField
+          :label="$t('user.profile.displayName')"
+          name="full_name"
+          required
+        >
           <UInput
             v-model="profileStore.form.full_name"
-            placeholder="The name that will be shown to other players"
+            :placeholder="$t('user.profile.displayNamePlaceholder')"
             size="lg"
             class="w-full"
           />
         </UFormField>
 
         <UFormField
-          label="User name"
+          :label="$t('user.profile.username')"
           name="username"
-          hint="Solo letras, números y _"
+          :hint="$t('user.profile.usernameHint')"
         >
           <UInput
             v-model="profileStore.form.username"
-            placeholder="tu_username"
+            :placeholder="$t('user.profile.usernamePlaceholder')"
             size="lg"
             class="w-full"
           >
@@ -106,10 +105,14 @@ async function onSubmit() {
         </UFormField>
       </div>
 
-      <UFormField label="Bio" name="bio" :hint="`${bioLength}/300`">
+      <UFormField
+        :label="$t('user.profile.bio')"
+        name="bio"
+        :hint="`${bioLength}/300`"
+      >
         <UTextarea
           v-model="profileStore.form.bio"
-          placeholder="Cuéntanos un poco de ti..."
+          :placeholder="$t('user.profile.bioPlaceholder')"
           :rows="3"
           size="lg"
           class="w-full"
@@ -119,24 +122,23 @@ async function onSubmit() {
 
     <USeparator />
 
-    <!-- ── Contacto ── -->
     <div class="space-y-4">
       <div>
         <h3
           class="text-sm font-semibold text-gray-400 uppercase tracking-wider"
         >
-          Contacto
+          {{ $t("user.profile.contact") }}
         </h3>
         <p class="text-xs text-gray-600 mt-1">
-          Solo llena los que quieras mostrar a otros jugadores
+          {{ $t("user.profile.contactHint") }}
         </p>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <UFormField label="Discord" name="discord">
+        <UFormField :label="$t('user.profile.discord')" name="discord">
           <UInput
             v-model="profileStore.form.discord"
-            placeholder="usuario#0000 o usuario"
+            :placeholder="$t('user.profile.discordPlaceholder')"
             size="lg"
             class="w-full"
           >
@@ -149,10 +151,10 @@ async function onSubmit() {
           </UInput>
         </UFormField>
 
-        <UFormField label="WhatsApp" name="whatsapp">
+        <UFormField :label="$t('user.profile.whatsapp')" name="whatsapp">
           <UInput
             v-model="profileStore.form.whatsapp"
-            placeholder="+52 33 1234 5678"
+            :placeholder="$t('user.profile.whatsappPlaceholder')"
             size="lg"
             class="w-full"
           >
@@ -165,10 +167,10 @@ async function onSubmit() {
           </UInput>
         </UFormField>
 
-        <UFormField label="Twitter / X" name="twitter">
+        <UFormField :label="$t('user.profile.twitter')" name="twitter">
           <UInput
             v-model="profileStore.form.twitter"
-            placeholder="tu_usuario"
+            :placeholder="$t('user.profile.twitterPlaceholder')"
             size="lg"
             class="w-full"
           >
@@ -178,10 +180,10 @@ async function onSubmit() {
           </UInput>
         </UFormField>
 
-        <UFormField label="Instagram" name="instagram">
+        <UFormField :label="$t('user.profile.instagram')" name="instagram">
           <UInput
             v-model="profileStore.form.instagram"
-            placeholder="tu_usuario"
+            :placeholder="$t('user.profile.instagramPlaceholder')"
             size="lg"
             class="w-full"
           >
@@ -194,10 +196,14 @@ async function onSubmit() {
           </UInput>
         </UFormField>
 
-        <UFormField label="Sitio web" name="website" class="sm:col-span-2">
+        <UFormField
+          :label="$t('user.profile.website')"
+          name="website"
+          class="sm:col-span-2"
+        >
           <UInput
             v-model="profileStore.form.website"
-            placeholder="https://tuwebsite.com"
+            :placeholder="$t('user.profile.websitePlaceholder')"
             size="lg"
             class="w-full"
           >
@@ -209,14 +215,13 @@ async function onSubmit() {
       </div>
     </div>
 
-    <!-- ── Guardar ── -->
     <div class="flex justify-end">
       <UButton
         type="submit"
         size="lg"
         :loading="profileStore.loading"
         icon="i-lucide-save"
-        label="Guardar cambios"
+        :label="$t('common.save')"
       />
     </div>
   </UForm>

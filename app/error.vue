@@ -8,6 +8,8 @@ defineProps({
   },
 });
 
+const { t } = useI18n();
+
 useHead({
   htmlAttrs: {
     lang: "en",
@@ -15,8 +17,8 @@ useHead({
 });
 
 useSeoMeta({
-  title: "Page not found",
-  description: "We are sorry but this page could not be found.",
+  title: () => t("pages.error.title"),
+  description: () => t("pages.error.description"),
 });
 </script>
 
@@ -31,8 +33,8 @@ useSeoMeta({
       }"
       :error="{
         statusCode: 404,
-        statusMessage: 'Page not found',
-        message: 'The page you are looking for does not exist.',
+        statusMessage: $t('pages.error.statusMessage'),
+        message: $t('pages.error.message'),
       }"
     />
   </UApp>

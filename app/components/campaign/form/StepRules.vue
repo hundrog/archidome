@@ -3,8 +3,10 @@
 import { rulesSchema } from "@/schemas/campaign";
 
 const campaignStore = useCampaignStore();
+const { t, tm } = useI18n();
 
-// ─── Jugadores ────────────────────────────────────────────────────────────────
+const PRESET_TAGS = computed(() => tm("campaign.form.styleTagPresets") as string[]);
+
 function decrement(
   field: "max_players" | "current_players" | "start_level",
   min: number,
@@ -19,25 +21,6 @@ function increment(
   const val = campaignStore.form[field] as number;
   if (val < max) campaignStore.form[field] = val + 1;
 }
-
-// ─── Style tags ───────────────────────────────────────────────────────────────
-const PRESET_TAGS = [
-  "Heavy Roleplay",
-  "Combat Heavy",
-  "Investigation",
-  "Sandbox",
-  "Dungeon Crawl",
-  "Political Intrigue",
-  "Beginner Friendly",
-  "Experienced Players",
-  "Horror",
-  "Comedy",
-  "Dark Themes",
-  "Homebrew",
-  "One-Shot",
-  "Campaign",
-  "West Marches",
-];
 
 const customTag = ref("");
 
@@ -56,7 +39,6 @@ function addCustomTag() {
   customTag.value = "";
 }
 
-// ─── House rules ──────────────────────────────────────────────────────────────
 const newRule = reactive({ title: "", description: "" });
 
 function addRule() {
@@ -84,14 +66,14 @@ function removeRule(idx: number) {
 
 <template>
   <UForm :schema="rulesSchema" :state="campaignStore.form" class="space-y-8">
-    <!-- ── Player Slots ── -->
     <div class="space-y-4">
-      <h3 class="label-metadata text-on-surface-dim">The Party</h3>
+      <h3 class="label-metadata text-on-surface-dim">
+        {{ $t("campaign.form.rules.party") }}
+      </h3>
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 place-items-center">
-        <!-- Max players -->
         <UFormField class="text-center" name="max_players">
-          Player Slots
+          {{ $t("campaign.form.rules.playerSlots") }}
           <div class="flex items-center gap-4 mt-1">
             <button
               type="button"
@@ -114,9 +96,8 @@ function removeRule(idx: number) {
             </button>
           </div>
         </UFormField>
-        <!-- Current players -->
         <UFormField class="text-center" name="current_players">
-          Current Players
+          {{ $t("campaign.form.rules.currentPlayers") }}
           <div class="flex items-center gap-4 mt-1">
             <button
               type="button"
@@ -140,9 +121,8 @@ function removeRule(idx: number) {
           </div>
         </UFormField>
 
-        <!-- Start level -->
         <UFormField class="text-center" name="start_level">
-          Start Level
+          {{ $t("campaign.form.rules.startLevel") }}
           <div class="flex items-center gap-4 mt-1">
             <button
               type="button"
@@ -170,11 +150,11 @@ function removeRule(idx: number) {
 
     <USeparator />
 
-    <!-- ── Style Tags ── -->
     <div class="space-y-4">
-      <h3 class="label-metadata text-on-surface-dim">Game Style Tags</h3>
+      <h3 class="label-metadata text-on-surface-dim">
+        {{ $t("campaign.form.rules.styleTags") }}
+      </h3>
 
-      <!-- Preset tags -->
       <div class="flex flex-wrap gap-2">
         <button
           v-for="tag in PRESET_TAGS"
@@ -197,11 +177,10 @@ function removeRule(idx: number) {
         </button>
       </div>
 
-      <!-- Custom tag -->
       <div class="flex gap-2">
         <UInput
           v-model="customTag"
-          placeholder="Agregar tag personalizado..."
+          :placeholder="$t('campaign.form.rules.customTagPlaceholder')"
           size="sm"
           class="flex-1"
           @keydown.enter.prevent="addCustomTag"
@@ -211,14 +190,13 @@ function removeRule(idx: number) {
           icon="i-lucide-plus"
           size="sm"
           variant="outline"
-          label="Add"
+          :label="$t('campaign.form.rules.add')"
           class="rounded-full"
           :disabled="!customTag.trim()"
           @click="addCustomTag"
         />
       </div>
 
-      <!-- Tags seleccionados -->
       <div
         v-if="(campaignStore.form.style_tags as string[]).length"
         class="flex flex-wrap gap-2"
@@ -243,11 +221,11 @@ function removeRule(idx: number) {
 
     <USeparator />
 
-    <!-- ── House Rules ── -->
     <div class="space-y-4">
-      <h3 class="label-metadata text-on-surface-dim">House Rules</h3>
+      <h3 class="label-metadata text-on-surface-dim">
+        {{ $t("campaign.form.rules.houseRules") }}
+      </h3>
 
-      <!-- Reglas existentes -->
       <TransitionGroup name="list" tag="div" class="space-y-2">
         <div
           v-for="(rule, idx) in campaignStore.form.house_rules"
@@ -280,18 +258,17 @@ function removeRule(idx: number) {
         </div>
       </TransitionGroup>
 
-      <!-- Agregar regla -->
       <div class="space-y-2 p-4 rounded-lg bg-surface-low ghost-border">
         <UInput
           v-model="newRule.title"
-          placeholder="Nombre de la regla..."
+          :placeholder="$t('campaign.form.rules.ruleNamePlaceholder')"
           size="sm"
           class="w-full"
           @keydown.enter.prevent="addRule"
         />
         <UInput
           v-model="newRule.description"
-          placeholder="Descripción opcional..."
+          :placeholder="$t('campaign.form.rules.ruleDescPlaceholder')"
           size="sm"
           class="w-full"
         />
@@ -301,7 +278,7 @@ function removeRule(idx: number) {
             icon="i-lucide-plus"
             size="sm"
             variant="outline"
-            label="Add Rule"
+            :label="$t('campaign.form.rules.addRule')"
             class="rounded-full"
             :disabled="!newRule.title.trim()"
             @click="addRule"

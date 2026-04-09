@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { toPng } from 'html-to-image';
+import { toPng } from "html-to-image";
 import type { Database } from "@/types/database.types";
 import { useCampaignStore } from "@/stores/campaign";
 
@@ -16,17 +16,16 @@ type Campaign = Database["public"]["Tables"]["campaigns"]["Row"] & {
   } | null;
 };
 
-// ─── Setup ────────────────────────────────────────────────────────────────────
 const route = useRoute();
 const router = useRouter();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const toast = useToast();
 const store = useCampaignStore();
+const { t } = useI18n();
 const id = route.params.id as string;
 const downloading = ref(false);
 
-// ─── Fetch ────────────────────────────────────────────────────────────────────
 const { data: campaign, pending } = await useAsyncData(
   `campaign-${id}`,
   async () => {
@@ -43,26 +42,27 @@ const { data: campaign, pending } = await useAsyncData(
 );
 
 if (!campaign.value) {
-  throw createError({ statusCode: 404, message: "Campaña no encontrada" });
+  throw createError({
+    statusCode: 404,
+    message: t("pages.campaignDetail.notFound"),
+  });
 }
 
-// ─── Owner ────────────────────────────────────────────────────────────────────
 const isOwner = computed(
   () => !!user.value && user.value.sub === campaign.value?.user_id,
 );
 
-// ─── Delete ───────────────────────────────────────────────────────────────────
 const showDeleteModal = ref(false);
 
 async function deleteCampaign() {
   try {
     store.currentCampaign = campaign.value as any;
     await store.deleteCampaign(id);
-    toast.add({ title: "Campaña eliminada", color: "success" });
+    toast.add({ title: t("pages.campaignDetail.deleted"), color: "success" });
     router.push("/campaigns");
   } catch (err: any) {
     toast.add({
-      title: "Error al eliminar",
+      title: t("pages.campaignDetail.deleteError"),
       description: err.message,
       color: "error",
     });
@@ -71,7 +71,6 @@ async function deleteCampaign() {
   }
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 const safeImageUrl = computed(() => {
   const url = campaign.value?.image_url;
   if (!url) return null;
@@ -82,27 +81,27 @@ const safeImageUrl = computed(() => {
   }
 });
 
-const playModeLabel: Record<string, string> = {
-  remote: "Remoto",
-  in_person: "Presencial",
-  hybrid: "Híbrido",
-};
+const playModeLabel = computed(() => ({
+  remote: t("campaign.playMode.remote"),
+  in_person: t("campaign.playMode.in_person"),
+  hybrid: t("campaign.playMode.hybrid"),
+}));
 
-const frequencyLabel: Record<string, string> = {
-  weekly: "Semanal",
-  biweekly: "Quincenal",
-  monthly: "Mensual",
-  irregular: "Irregular",
-};
+const frequencyLabel = computed(() => ({
+  weekly: t("campaign.frequency.weekly"),
+  biweekly: t("campaign.frequency.biweekly"),
+  monthly: t("campaign.frequency.monthly"),
+  irregular: t("campaign.frequency.irregular"),
+}));
 
-const platformLabel: Record<string, string> = {
-  discord: "Discord",
-  roll20: "Roll20",
-  foundry: "Foundry VTT",
-  google_meet: "Google Meet",
-  tabletop_simulator: "Tabletop Simulator",
-  other: "Otro",
-};
+const platformLabel = computed(() => ({
+  discord: t("campaign.platform.discord"),
+  roll20: t("campaign.platform.roll20"),
+  foundry: t("campaign.platform.foundry"),
+  google_meet: t("campaign.platform.google_meet"),
+  tabletop_simulator: t("campaign.platform.tabletop_simulator"),
+  other: t("campaign.platform.other"),
+}));
 
 const houseRules = computed(() => {
   const raw = campaign.value?.house_rules;
@@ -117,43 +116,54 @@ const styleTags = computed(() => {
 });
 
 async function downloadCampaignImage() {
-  const node = document.getElementById('share-card-container');
-  
+  const node = document.getElementById("share-card-container");
+
   if (!node || !campaign.value) {
-    toast.add({ title: 'Error', description: 'No se encontró el elemento a compartir', color: 'error' });
+    toast.add({
+      title: t("common.error"),
+      description: t("pages.campaignDetail.shareNotFound"),
+      color: "error",
+    });
     return;
   }
 
   downloading.value = true;
-  
+
   try {
     await nextTick();
-    await new Promise(resolve => setTimeout(resolve, 100));
-    // 1. Convertir HTML a Base64 PNG
-    // options: añadimos cacheBust para evitar problemas con imágenes externas (avatars)
-    const dataUrl = await toPng(node, { skipFonts: true, cacheBust: true, quality: 0.95 });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const dataUrl = await toPng(node, {
+      skipFonts: true,
+      cacheBust: true,
+      quality: 0.95,
+    });
 
-    // 2. Crear un enlace temporal y forzar la descarga
-    const link = document.createElement('a');
-    // Nombre del archivo: slug-de-la-campana.png
-    const fileName = `${campaign.value.title.toLowerCase().replace(/ /g, '-')}-share.png`;
-    
+    const link = document.createElement("a");
+    const fileName = `${campaign.value.title.toLowerCase().replace(/ /g, "-")}-share.png`;
+
     link.download = fileName;
     link.href = dataUrl;
     link.click();
 
-    toast.add({ title: '¡Imagen generada!', description: 'Ya puedes compartirla con tus jugadores.', color: 'success' });
+    toast.add({
+      title: t("pages.campaignDetail.imageGenerated"),
+      description: t("pages.campaignDetail.imageGeneratedDesc"),
+      color: "success",
+    });
   } catch (err: any) {
-    console.error('oops, something went wrong!', err);
-    toast.add({ title: 'Error al generar imagen', description: err.message, color: 'error' });
+    console.error("oops, something went wrong!", err);
+    toast.add({
+      title: t("pages.campaignDetail.imageGenError"),
+      description: err.message,
+      color: "error",
+    });
   } finally {
     downloading.value = false;
   }
 }
 
-// ─── SEO ──────────────────────────────────────────────────────────────────────
 useSeoMeta({
-  title: () => campaign.value?.title ?? "Campaña",
+  title: () => campaign.value?.title ?? t("pages.campaignDetail.seoFallbackTitle"),
   description: () => campaign.value?.description ?? "",
   ogImage: () => campaign.value?.image_url ?? undefined,
 });
@@ -161,7 +171,6 @@ useSeoMeta({
 
 <template>
   <div class="min-h-screen bg-surface text-on-surface">
-    <!-- ── Loading ── -->
     <div
       v-if="pending"
       class="max-w-6xl mx-auto px-4 py-12 space-y-6 animate-pulse"
@@ -172,11 +181,9 @@ useSeoMeta({
     </div>
 
     <template v-else-if="campaign">
-      <!-- ── Hero ── -->
       <section
         class="relative min-h-130 flex flex-col justify-end overflow-hidden"
       >
-        <!-- Botón volver -->
         <div
           class="relative z-10 px-6 pb-10 max-w-6xl mx-auto w-full space-y-3"
         >
@@ -185,7 +192,7 @@ useSeoMeta({
             class="inline-flex items-center gap-2 font-body text-label-xl text-on-surface-dim hover:text-on-surface transition-colors mb-6"
           >
             <UIcon name="i-lucide-arrow-left" class="size-4" />
-            Volver a campañas
+            {{ $t("pages.campaignDetail.back") }}
           </NuxtLink>
         </div>
         <div class="absolute inset-0 z-0">
@@ -202,17 +209,16 @@ useSeoMeta({
           />
         </div>
 
-        <!-- Acciones dueño -->
         <div class="absolute bottom-16 right-6 z-20 flex gap-2">
-          <UButton 
-            icon="i-lucide-image" 
-            color="primary" 
+          <UButton
+            icon="i-lucide-image"
+            color="primary"
             variant="ghost"
             :loading="downloading"
             @click="downloadCampaignImage"
           />
           <UButton
-            v-if="isOwner" 
+            v-if="isOwner"
             :to="`/campaigns/${id}/edit`"
             icon="i-lucide-pencil"
             variant="soft"
@@ -220,7 +226,7 @@ useSeoMeta({
             class="rounded-full"
           />
           <UButton
-            v-if="isOwner" 
+            v-if="isOwner"
             icon="i-lucide-trash-2"
             variant="soft"
             color="error"
@@ -229,7 +235,6 @@ useSeoMeta({
           />
         </div>
 
-        <!-- Contenido -->
         <div
           class="relative z-10 px-6 pb-10 max-w-6xl mx-auto w-full space-y-3"
         >
@@ -245,7 +250,7 @@ useSeoMeta({
               style="background: rgba(74, 222, 128, 0.15); color: #4ade80"
             >
               <span class="size-1.5 rounded-full bg-green-400 inline-block" />
-              Reclutando
+              {{ $t("pages.campaignDetail.recruiting") }}
             </span>
           </div>
           <h1
@@ -259,13 +264,11 @@ useSeoMeta({
         </div>
       </section>
 
-      <!-- ── Logistics + GM ── -->
       <section class="max-w-6xl mx-auto px-6 py-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <!-- Session Logistics -->
           <div class="bg-surface-low rounded-xl p-6 space-y-5">
             <h3 class="label-metadata text-on-surface-dim">
-              Session Logistics
+              {{ $t("pages.campaignDetail.sessionLogistics") }}
             </h3>
             <div class="grid grid-cols-2 gap-4">
               <div class="flex items-start gap-3">
@@ -275,13 +278,13 @@ useSeoMeta({
                 />
                 <div>
                   <p class="label-metadata" style="font-size: 0.6rem">
-                    Schedule
+                    {{ $t("pages.campaignDetail.schedule") }}
                   </p>
                   <p class="font-body text-body-sm text-on-surface">
                     {{
                       campaign.frequency
                         ? frequencyLabel[campaign.frequency]
-                        : "—"
+                        : $t("pages.campaignDetail.emDash")
                     }}
                   </p>
                 </div>
@@ -292,14 +295,17 @@ useSeoMeta({
                   class="size-4 text-on-surface-dim mt-0.5 shrink-0"
                 />
                 <div>
-                  <p class="label-metadata" style="font-size: 0.6rem">Format</p>
+                  <p class="label-metadata" style="font-size: 0.6rem">
+                    {{ $t("pages.campaignDetail.format") }}
+                  </p>
                   <p class="font-body text-body-sm text-on-surface">
                     {{ playModeLabel[campaign.play_mode] }}
                     <span
                       v-if="campaign.virtual_platform"
                       class="text-on-surface-dim"
                     >
-                      / {{ platformLabel[campaign.virtual_platform] }}</span
+                      /
+                      {{ platformLabel[campaign.virtual_platform] }}</span
                     >
                   </p>
                 </div>
@@ -310,10 +316,16 @@ useSeoMeta({
                   class="size-4 text-on-surface-dim mt-0.5 shrink-0"
                 />
                 <div>
-                  <p class="label-metadata" style="font-size: 0.6rem">Spots</p>
+                  <p class="label-metadata" style="font-size: 0.6rem">
+                    {{ $t("pages.campaignDetail.spots") }}
+                  </p>
                   <p class="font-body text-body-sm text-on-surface">
-                    {{ campaign.current_players }} /
-                    {{ campaign.max_players }} jugadores
+                    {{
+                      $t("pages.campaignDetail.playersCount", {
+                        current: campaign.current_players,
+                        max: campaign.max_players,
+                      })
+                    }}
                   </p>
                 </div>
               </div>
@@ -324,7 +336,7 @@ useSeoMeta({
                 />
                 <div>
                   <p class="label-metadata" style="font-size: 0.6rem">
-                    Language
+                    {{ $t("pages.campaignDetail.language") }}
                   </p>
                   <p class="font-body text-body-sm text-on-surface">
                     {{ campaign.language }}
@@ -338,7 +350,7 @@ useSeoMeta({
                 />
                 <div>
                   <p class="label-metadata" style="font-size: 0.6rem">
-                    Duration
+                    {{ $t("pages.campaignDetail.duration") }}
                   </p>
                   <p class="font-body text-body-sm text-on-surface">
                     {{ campaign.duration }}
@@ -352,24 +364,29 @@ useSeoMeta({
                 />
                 <div>
                   <p class="label-metadata" style="font-size: 0.6rem">
-                    Start Level
+                    {{ $t("pages.campaignDetail.startLevel") }}
                   </p>
                   <p class="font-body text-body-sm text-on-surface">
-                    Nivel {{ campaign.start_level }}
+                    {{
+                      $t("pages.campaignDetail.levelN", {
+                        n: campaign.start_level,
+                      })
+                    }}
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Game Master -->
           <div class="bg-surface-low rounded-xl p-6 space-y-5">
-            <h3 class="label-metadata text-on-surface-dim">Game Master</h3>
+            <h3 class="label-metadata text-on-surface-dim">
+              {{ $t("pages.campaignDetail.gameMaster") }}
+            </h3>
             <div class="flex items-start gap-4">
               <img
                 v-if="campaign.profiles?.avatar_url"
                 :src="campaign.profiles.avatar_url"
-                :alt="campaign.profiles.full_name ?? 'GM'"
+                :alt="campaign.profiles.full_name ?? $t('pages.campaignDetail.gmAlt')"
                 class="size-8 rounded-full object-cover ring-2 ring-surface-variant shrink-0"
               />
               <div
@@ -383,7 +400,10 @@ useSeoMeta({
               </div>
               <div class="flex-1 min-w-0 space-y-1">
                 <h4 class="font-display text-headline-sm text-on-surface">
-                  {{ campaign.profiles?.full_name ?? "GM desconocido" }}
+                  {{
+                    campaign.profiles?.full_name ??
+                    $t("pages.campaignDetail.gmUnknown")
+                  }}
                 </h4>
                 <p
                   v-if="campaign.profiles?.username"
@@ -408,7 +428,9 @@ useSeoMeta({
               "
               class="pt-2 space-y-2"
             >
-              <p class="label-metadata text-on-surface-dim">Contacto</p>
+              <p class="label-metadata text-on-surface-dim">
+                {{ $t("pages.campaignDetail.contact") }}
+              </p>
               <div class="flex flex-wrap gap-2">
                 <ULink
                   v-if="campaign.profiles?.discord"
@@ -422,7 +444,7 @@ useSeoMeta({
                     class="size-4"
                     style="color: #5865f2"
                   />
-                  Discord
+                  {{ $t("pages.campaignDetail.discord") }}
                 </ULink>
                 <ULink
                   v-if="campaign.profiles?.whatsapp"
@@ -436,7 +458,7 @@ useSeoMeta({
                     class="size-4"
                     style="color: #25d366"
                   />
-                  WhatsApp
+                  {{ $t("pages.campaignDetail.whatsapp") }}
                 </ULink>
                 <ULink
                   v-if="campaign.profiles?.twitter"
@@ -449,7 +471,7 @@ useSeoMeta({
                     name="i-simple-icons-x"
                     class="size-4 text-on-surface"
                   />
-                  Twitter
+                  {{ $t("pages.campaignDetail.twitter") }}
                 </ULink>
                 <ULink
                   v-if="campaign.profiles?.instagram"
@@ -463,7 +485,7 @@ useSeoMeta({
                     class="size-4"
                     style="color: #e1306c"
                   />
-                  Instagram
+                  {{ $t("pages.campaignDetail.instagram") }}
                 </ULink>
               </div>
             </div>
@@ -471,18 +493,15 @@ useSeoMeta({
         </div>
       </section>
 
-      <!-- ── Descripción + Sidebar ── -->
       <section class="max-w-6xl mx-auto px-6 pb-16">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <!-- Izquierda -->
           <div class="lg:col-span-2 space-y-10">
-            <!-- About -->
             <div class="space-y-4">
               <h2
                 class="font-display text-headline-md text-on-surface flex items-center gap-2"
               >
                 <UIcon name="i-lucide-book-open" class="size-5 text-primary" />
-                About the Adventure
+                {{ $t("pages.campaignDetail.aboutAdventure") }}
               </h2>
               <p
                 class="font-body text-body-md text-on-surface-dim leading-relaxed whitespace-pre-line"
@@ -491,13 +510,12 @@ useSeoMeta({
               </p>
             </div>
 
-            <!-- House Rules -->
             <div v-if="houseRules.length" class="space-y-4">
               <h2
                 class="font-display text-headline-md text-on-surface flex items-center gap-2"
               >
                 <UIcon name="i-lucide-scroll" class="size-5 text-primary" />
-                House Rules
+                {{ $t("pages.campaignDetail.houseRules") }}
               </h2>
               <div class="space-y-3">
                 <div
@@ -530,10 +548,9 @@ useSeoMeta({
             </div>
           </div>
 
-          <!-- Derecha: What to Expect -->
           <div class="space-y-4">
             <h2 class="font-display text-headline-md text-on-surface">
-              What to Expect
+              {{ $t("pages.campaignDetail.whatToExpect") }}
             </h2>
             <div class="space-y-3">
               <div
@@ -555,7 +572,6 @@ useSeoMeta({
       </section>
     </template>
 
-    <!-- ── Modal eliminar ── -->
     <UModal v-model:open="showDeleteModal">
       <template #content>
         <div class="p-6 space-y-4">
@@ -567,26 +583,26 @@ useSeoMeta({
               />
             </div>
             <h3 class="font-display text-headline-sm text-white">
-              Eliminar campaña
+              {{ $t("pages.campaignDetail.deleteModalTitle") }}
             </h3>
           </div>
           <p class="font-body text-body-sm text-on-surface-dim">
-            ¿Estás seguro de que quieres eliminar
-            <span class="text-on-surface font-medium">{{
-              campaign?.title
-            }}</span
-            >? Esta acción no se puede deshacer.
+            {{
+              $t("pages.campaignDetail.deleteModalBody", {
+                title: campaign?.title,
+              })
+            }}
           </p>
           <div class="flex justify-end gap-3 pt-2">
             <UButton
               variant="ghost"
-              label="Cancelar"
+              :label="$t('common.cancel')"
               @click="showDeleteModal = false"
             />
             <UButton
               color="error"
               icon="i-lucide-trash-2"
-              label="Eliminar"
+              :label="$t('common.delete')"
               :loading="store.loading"
               @click="deleteCampaign"
             />
@@ -596,6 +612,6 @@ useSeoMeta({
     </UModal>
   </div>
   <div class="fixed -top-1250 -left-1250 pointer-events-none aria-hidden">
-      <CampaignShareCard :campaign="campaign" id="share-card-container" />
-    </div>
+    <CampaignShareCard :campaign="campaign" id="share-card-container" />
+  </div>
 </template>

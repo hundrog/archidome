@@ -3,7 +3,7 @@ type Database = import("@/types/database.types").Database;
 type ProjectRow = Database["public"]["Tables"]["projects"]["Row"];
 type CampaignRow = Database["public"]["Tables"]["campaigns"]["Row"];
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
-type ProfileProjectRow =Database["public"]["Tables"]["profile_projects"]["Row"];
+type ProfileProjectRow = Database["public"]["Tables"]["profile_projects"]["Row"];
 
 type ProjectFull = ProjectRow & {
   campaigns: (CampaignRow & {
@@ -23,6 +23,7 @@ const project = ref<ProjectFull | null>(null);
 const toast = useToast();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
+const { t } = useI18n();
 const deletingId = ref<string | null>(null);
 const showDeleteModal = ref(false);
 const projectToDelete = ref<ProjectRow | null>(null);
@@ -30,14 +31,15 @@ const editingId = ref<string | null>(null);
 const editingName = ref("");
 
 const isOwner = computed(() => {
-  const owner = project.value?.profile_projects.find(pp => pp.owner);
+  const owner = project.value?.profile_projects.find((pp) => pp.owner);
   return owner?.profiles.id === user.value?.sub;
 });
 
 const fetchProjectDetails = async (projectId: string) => {
   const { data, error } = await supabase
     .from("projects")
-    .select(`
+    .select(
+      `
     *,
     campaigns (
       *,
@@ -51,7 +53,8 @@ const fetchProjectDetails = async (projectId: string) => {
       owner,
       profiles ( id, username, avatar_url )
     )
-  `)
+  `,
+    )
     .eq("id", projectId)
     .single();
 
@@ -66,13 +69,12 @@ onMounted(async () => {
   } catch (error) {
     console.error("Error fetching project details:", error);
     toast.add({
-      title: "Error al cargar detalles del proyecto",
+      title: t("pages.projectDetail.loadError"),
       color: "error",
     });
   }
 });
 
-// ─── Editar inline ────────────────────────────────────────────────────────────
 function startEdit(project: ProjectRow) {
   editingId.value = project.id;
   editingName.value = project.name;
@@ -99,10 +101,10 @@ async function saveEdit(project: ProjectRow) {
 
     project.name = editingName.value.trim();
     cancelEdit();
-    toast.add({ title: "Proyecto actualizado", color: "success" });
+    toast.add({ title: t("pages.projectDetail.updated"), color: "success" });
   } catch (err: any) {
     toast.add({
-      title: "Error al actualizar",
+      title: t("pages.projectDetail.updateError"),
       description: err.message,
       color: "error",
     });
@@ -114,7 +116,6 @@ function onEditKeydown(event: KeyboardEvent, project: ProjectRow) {
   if (event.key === "Escape") cancelEdit();
 }
 
-// ─── Eliminar ─────────────────────────────────────────────────────────────────
 function confirmDelete(project: ProjectRow) {
   projectToDelete.value = project;
   showDeleteModal.value = true;
@@ -136,10 +137,10 @@ async function deleteProject() {
     projectToDelete.value = null;
 
     navigateTo("/campaigns");
-    toast.add({ title: "Proyecto eliminado", color: "success" });
+    toast.add({ title: t("pages.projectDetail.deleted"), color: "success" });
   } catch (err: any) {
     toast.add({
-      title: "Error al eliminar",
+      title: t("pages.projectDetail.deleteError"),
       description: err.message,
       color: "error",
     });
@@ -148,25 +149,28 @@ async function deleteProject() {
   }
 }
 
-// ─── SEO ──────────────────────────────────────────────────────────────────────
 useSeoMeta({
-  title: () => project.value ? project.value.name : "Proyecto no encontrado",
-  description: () => "Detalles del proyecto " + (project.value ? project.value.name : ""),
+  title: () =>
+    project.value
+      ? project.value.name
+      : t("pages.projectDetail.seoNotFound"),
+  description: () =>
+    t("pages.projectDetail.seoDescription", {
+      name: project.value ? project.value.name : "",
+    }),
 });
 </script>
 <template>
   <div class="min-h-screen bg-surface">
     <div class="max-w-7xl mx-auto px-4 py-10 space-y-8">
-      <!-- ── Encabezado ── -->
       <div>
         <NuxtLink
           to="/projects"
           class="inline-flex items-center gap-2 font-body text-label-xl text-on-surface-dim hover:text-on-surface transition-colors mb-6"
         >
           <UIcon name="i-lucide-arrow-left" class="size-4" />
-          Volver a projectos
+          {{ $t("pages.projectDetail.back") }}
         </NuxtLink>
-        <!-- Modo edición -->
         <UInput
           v-if="editingId === project?.id"
           v-model="editingName"
@@ -176,7 +180,7 @@ useSeoMeta({
           @keydown="onEditKeydown($event, project)"
         />
         <h1 v-else class="font-display text-display-sm text-on-surface">
-          {{ project?.name || "Proyecto sin nombre" }}
+          {{ project?.name || $t("pages.projectDetail.unnamed") }}
         </h1>
         <template v-if="isOwner && editingId === project?.id">
           <UButton
@@ -184,7 +188,7 @@ useSeoMeta({
             size="xs"
             color="success"
             variant="ghost"
-            title="Guardar"
+            :title="$t('pages.projectDetail.saveTitle')"
             @click="saveEdit(project as ProjectRow)"
           />
           <UButton
@@ -192,7 +196,7 @@ useSeoMeta({
             size="xs"
             color="neutral"
             variant="ghost"
-            title="Cancelar"
+            :title="$t('pages.projectDetail.cancelTitle')"
             @click="cancelEdit"
           />
         </template>
@@ -202,7 +206,7 @@ useSeoMeta({
             size="xs"
             color="neutral"
             variant="ghost"
-            title="Editar"
+            :title="$t('pages.projectDetail.editTitle')"
             @click="startEdit(project as ProjectRow)"
           />
           <UButton
@@ -210,7 +214,7 @@ useSeoMeta({
             size="xs"
             color="error"
             variant="ghost"
-            title="Eliminar"
+            :title="$t('pages.projectDetail.deleteTitle')"
             @click="confirmDelete(project as ProjectRow)"
           />
         </template>
@@ -219,12 +223,12 @@ useSeoMeta({
         <div class="md:col-span-2 space-y-4">
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-bold text-white flex items-center gap-2">
-              <UIcon name="i-lucide-swords" /> Campañas
+              <UIcon name="i-lucide-swords" /> {{ $t("pages.projectDetail.campaigns") }}
             </h3>
             <UButton
               icon="i-lucide-plus"
               size="xs"
-              label="Nueva Campaña"
+              :label="$t('pages.projectDetail.newCampaign')"
               to="/campaigns/new"
             />
           </div>
@@ -234,7 +238,7 @@ useSeoMeta({
               v-if="!project?.campaigns.length"
               class="p-8 text-center text-gray-500 border-2 border-dashed border-gray-800 rounded-xl"
             >
-              No tienes campañas por ahora.
+              {{ $t("pages.projectDetail.noCampaigns") }}
             </div>
 
             <CampaignCard
@@ -242,27 +246,25 @@ useSeoMeta({
               :key="campaign.id"
               :campaign="campaign as Campaign"
             />
-
           </div>
         </div>
 
         <div class="space-y-4">
           <h3 class="text-lg font-bold text-white flex items-center gap-2">
-            <UIcon name="i-lucide-users" /> Staff de Masters
+            <UIcon name="i-lucide-users" /> {{ $t("pages.projectDetail.staffTitle") }}
           </h3>
 
-          <div
-          v-if="project"
-            class=""
-          >
-            <ProjectStaffAdmin :project="project" @refresh="fetchProjectDetails(project.id)" />
+          <div v-if="project" class="">
+            <ProjectStaffAdmin
+              :project="project"
+              @refresh="fetchProjectDetails(project.id)"
+            />
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ── Modal eliminar ── -->
   <UModal v-model:open="showDeleteModal">
     <template #content>
       <div class="p-6 space-y-4">
@@ -270,25 +272,29 @@ useSeoMeta({
           <div class="p-2 rounded-full bg-red-500/10">
             <UIcon name="i-lucide-triangle-alert" class="size-5 text-red-400" />
           </div>
-          <h3 class="text-lg font-semibold text-white">Eliminar proyecto</h3>
+          <h3 class="text-lg font-semibold text-white">
+            {{ $t("pages.projectDetail.deleteModalTitle") }}
+          </h3>
         </div>
 
         <p class="text-sm text-gray-400">
-          ¿Eliminar
-          <span class="text-white font-medium">{{ projectToDelete?.name }}</span
-          >? Las campañas asociadas también serán eliminadas.
+          {{
+            $t("pages.projectDetail.deleteModalBody", {
+              name: projectToDelete?.name,
+            })
+          }}
         </p>
 
         <div class="flex justify-end gap-3 pt-2">
           <UButton
             variant="ghost"
-            label="Cancelar"
+            :label="$t('common.cancel')"
             @click="showDeleteModal = false"
           />
           <UButton
             color="error"
             icon="i-lucide-trash-2"
-            label="Eliminar"
+            :label="$t('common.delete')"
             :loading="!!deletingId"
             @click="deleteProject"
           />

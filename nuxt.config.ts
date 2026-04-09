@@ -8,7 +8,19 @@ export default defineNuxtConfig({
       enabled: true,
     },
   },
-  modules: ["@nuxt/ui", "@nuxtjs/supabase", "@pinia/nuxt", "@nuxt/image"],
+  modules: [
+    "@nuxt/ui",
+    "@nuxtjs/supabase",
+    "@pinia/nuxt",
+    "@nuxt/image",
+    "@nuxtjs/i18n",
+  ],
+  i18n: {
+    locales: [{ code: "en", language: "en-US", file: "en.json" }],
+    defaultLocale: "en",
+    langDir: "locales",
+    strategy: "no_prefix",
+  },
   css: ["~/assets/css/main.css"],
   colorMode: {
     preference: "dark",

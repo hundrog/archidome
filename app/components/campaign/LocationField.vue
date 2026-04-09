@@ -1,32 +1,26 @@
 <script setup lang="ts">
-// components/campaign/LocationField.vue
-
-// ─── Emits ────────────────────────────────────────────────────────────────────
 const emit = defineEmits<{
   update: [
     payload: { lat: number | null; lng: number | null; locationName: string },
   ];
 }>();
 
-// ─── Props ────────────────────────────────────────────────────────────────────
 const props = defineProps<{
   initialLocation?: string | null;
   initialCoords?: { lat: number; lng: number } | null;
 }>();
 
-// ─── Setup ────────────────────────────────────────────────────────────────────
 const toast = useToast();
+const { t } = useI18n();
 const { geocode, loading: geocoding, error: geocodeError } = useGeocoder();
 const { fuzzCoords } = useFuzzCoords();
 const { coords, request: requestGeo, loading: geoLoading } = useGeolocation();
 
-// ─── Estado ───────────────────────────────────────────────────────────────────
 const locationName = ref(props.initialLocation ?? "");
 const resolvedCoords = ref<{ lat: number; lng: number } | null>(
   props.initialCoords ?? null,
 );
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function emitUpdate(lat: number | null, lng: number | null, name: string) {
   emit("update", { lat, lng, locationName: name });
 }
@@ -36,7 +30,6 @@ function clearLocation() {
   emitUpdate(null, null, "");
 }
 
-// ─── Geocodificar al salir del campo ─────────────────────────────────────────
 async function onBlur() {
   if (!locationName.value.trim()) {
     clearLocation();
@@ -49,26 +42,25 @@ async function onBlur() {
     resolvedCoords.value = fuzzed;
     emitUpdate(fuzzed.lat, fuzzed.lng, locationName.value);
     toast.add({
-      title: "📍 Ubicación encontrada",
+      title: t("campaign.location.foundTitle"),
       description: result.displayName.split(",").slice(0, 3).join(","),
       color: "success",
     });
   } else {
     clearLocation();
     toast.add({
-      title: "Ubicación no encontrada",
-      description: 'Intenta ser más específico (ej: "Guadalajara, Jalisco")',
+      title: t("campaign.location.notFoundTitle"),
+      description: t("campaign.location.notFoundDesc"),
       color: "warning",
     });
   }
 }
 
-// ─── Usar ubicación del navegador ────────────────────────────────────────────
 async function useMyLocation() {
   await requestGeo();
 
   if (!coords.value) {
-    toast.add({ title: "No se pudo obtener tu ubicación", color: "error" });
+    toast.add({ title: t("campaign.location.geoError"), color: "error" });
     return;
   }
 
@@ -84,31 +76,36 @@ async function useMyLocation() {
     locationName.value = data.locationName;
     emitUpdate(fuzzed.lat, fuzzed.lng, data.locationName);
     toast.add({
-      title: "📍 Ubicación guardada",
+      title: t("campaign.location.savedTitle"),
       description: data.locationName,
       color: "success",
     });
   } else {
     emitUpdate(fuzzed.lat, fuzzed.lng, "");
-    toast.add({ title: "No se pudo resolver la ciudad", color: "warning" });
+    toast.add({
+      title: t("campaign.location.resolveCityError"),
+      color: "warning",
+    });
   }
 }
+
+const locationHint = computed(() =>
+  resolvedCoords.value
+    ? t("campaign.form.locationHintVerified")
+    : t("campaign.form.locationHintType"),
+);
 </script>
 
 <template>
   <UFormField
-    label="Ciudad / Ubicación"
+    :label="$t('campaign.form.locationLabel')"
     name="location_name"
-    :hint="
-      resolvedCoords
-        ? '✅ Ubicación verificada'
-        : 'Escribe tu ciudad o usa tu ubicación actual'
-    "
+    :hint="locationHint"
   >
     <div class="flex gap-2">
       <UInput
         v-model="locationName"
-        placeholder="Ej: Guadalajara, Jalisco"
+        :placeholder="$t('campaign.form.locationPlaceholder')"
         size="lg"
         class="flex-1"
         :trailing-icon="resolvedCoords ? 'i-lucide-map-pin' : undefined"
@@ -120,7 +117,7 @@ async function useMyLocation() {
         color="neutral"
         variant="outline"
         :loading="geoLoading"
-        title="Usar mi ubicación actual"
+        :title="$t('campaign.form.useMyLocation')"
         @click="useMyLocation"
       />
     </div>

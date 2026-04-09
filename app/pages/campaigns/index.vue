@@ -1,8 +1,8 @@
 <script setup lang="ts">
-// ─── SEO ──────────────────────────────────────────────────────────────────────
+const { t } = useI18n();
 useSeoMeta({
-  title: () => "The Archidome",
-  description: () => "Encuentra campañas de rol para unirte o inspírate para crear la tuya propia.",
+  title: () => t("pages.campaigns.title"),
+  description: () => t("pages.campaigns.description"),
 });
 </script>
 <template>

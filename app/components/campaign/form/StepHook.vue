@@ -3,33 +3,24 @@
 import { hookSchema } from "@/schemas/campaign";
 
 const campaignStore = useCampaignStore();
+const { t, tm } = useI18n();
 
 const hookLength = computed(() => campaignStore.form.hook?.length ?? 0);
 const descLength = computed(() => campaignStore.form.description?.length ?? 0);
 
-// Sistemas populares para sugerencias
-const systemSuggestions = [
-  "Dungeons & Dragons 5e",
-  "Pathfinder 2e",
-  "Fabula Ultima",
-  "Call of Cthulhu",
-  "Vampire: The Masquerade",
-  "Blades in the Dark",
-  "Ironsworn",
-  "Savage Worlds",
-  "Mothership",
-  "Trophy Gold",
-];
+const systemSuggestions = computed(
+  () => tm("campaign.form.systemSuggestions") as string[],
+);
 
 const showSuggestions = ref(false);
 const filteredSystems = computed(() =>
   campaignStore.form.system
-    ? systemSuggestions.filter((s) =>
+    ? systemSuggestions.value.filter((s) =>
         s
           .toLowerCase()
           .includes(campaignStore.form.system?.toLowerCase() ?? ""),
       )
-    : systemSuggestions,
+    : systemSuggestions.value,
 );
 
 function selectSystem(system: string) {
@@ -44,34 +35,35 @@ async function onBlur() {
 
 <template>
   <UForm :schema="hookSchema" :state="campaignStore.form" class="space-y-6">
-    <!-- Título -->
     <UFormField
-      label="Título de la campaña"
+      :label="$t('campaign.form.hook.titleLabel')"
       name="title"
       required
-      hint="El nombre que verán los jugadores"
+      :hint="$t('campaign.form.hook.titleHint')"
     >
       <UInput
         v-model="campaignStore.form.title"
-        placeholder="Ej: Las Crónicas de Valdris"
+        :placeholder="$t('campaign.form.hook.titlePlaceholder')"
         size="lg"
         class="w-full"
       />
     </UFormField>
 
-    <!-- Sistema -->
-    <UFormField label="Sistema de juego" name="system" required>
+    <UFormField
+      :label="$t('campaign.form.hook.systemLabel')"
+      name="system"
+      required
+    >
       <div class="relative">
         <UInput
           v-model="campaignStore.form.system"
-          placeholder="Ej: Dungeons & Dragons 5e"
+          :placeholder="$t('campaign.form.hook.systemPlaceholder')"
           size="lg"
           class="w-full"
           autocomplete="off"
           @focus="showSuggestions = true"
           @blur="onBlur"
         />
-        <!-- Sugerencias -->
         <Transition name="fade">
           <div
             v-if="showSuggestions && filteredSystems.length"
@@ -90,31 +82,37 @@ async function onBlur() {
       </div>
     </UFormField>
 
-    <!-- Hook -->
     <UFormField
-      label="The Hook"
+      :label="$t('campaign.form.hook.hookLabel')"
       name="hook"
       required
-      :hint="`${hookLength}/300 — El gancho que atrae a los jugadores`"
+      :hint="
+        $t('campaign.form.hook.hookHint', {
+          n: hookLength,
+        })
+      "
     >
       <UTextarea
         v-model="campaignStore.form.hook"
-        placeholder="Describe la premisa central, el conflicto inmediato o la leyenda que une al grupo..."
+        :placeholder="$t('campaign.form.hook.hookPlaceholder')"
         :rows="3"
         size="lg"
         class="w-full"
       />
     </UFormField>
 
-    <!-- Descripción / Lore -->
     <UFormField
-      label="World Lore & Descripción"
+      :label="$t('campaign.form.hook.descriptionLabel')"
       name="description"
-      :hint="`${descLength}/5000 — Detalla la atmósfera, el mundo y la trama`"
+      :hint="
+        $t('campaign.form.hook.descriptionHint', {
+          n: descLength,
+        })
+      "
     >
       <UTextarea
         v-model="campaignStore.form.description"
-        placeholder="Describe la atmósfera, la amenaza inmediata, o la leyenda que une al grupo..."
+        :placeholder="$t('campaign.form.hook.descriptionPlaceholder')"
         :rows="8"
         size="lg"
         class="w-full"

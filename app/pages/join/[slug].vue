@@ -1,22 +1,19 @@
 <script setup lang="ts">
-// ─── Setup ────────────────────────────────────────────────────────────────────
 const route = useRoute();
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const toast = useToast();
+const { t } = useI18n();
 const slug = route.params.slug as string;
 
-// ─── Estado ───────────────────────────────────────────────────────────────────
 const project = ref<any>(null);
 const loading = ref(true);
 const sendingRequest = ref(false);
 const alreadyMember = ref(false);
 
-// ─── Fetch Datos del Proyecto ─────────────────────────────────────────────────
 async function fetchProjectData() {
   loading.value = true;
   try {
-    // Buscamos el proyecto por su slug
     const { data, error } = await supabase
       .from("projects")
       .select(
@@ -36,7 +33,6 @@ async function fetchProjectData() {
     if (error) throw error;
     project.value = data;
 
-    // Verificar si el usuario ya envió solicitud o es parte
     if (user.value) {
       const { data: memberData } = await supabase
         .from("profile_projects")
@@ -45,13 +41,11 @@ async function fetchProjectData() {
         .eq("profile_id", user.value.sub)
         .single();
 
-      // console.log('Membership data:', profile_projects);
-
       if (memberData) alreadyMember.value = true;
     }
   } catch (err: any) {
-    toast.add({ title: "Proyecto no encontrado", color: "error" });
-    await navigateTo("/"); // Redirigir si no existe
+    toast.add({ title: t("pages.join.notFound"), color: "error" });
+    await navigateTo("/");
   } finally {
     loading.value = false;
   }
@@ -59,10 +53,9 @@ async function fetchProjectData() {
 
 fetchProjectData();
 
-// ─── Enviar Solicitud ─────────────────────────────────────────────────────────
 async function requestJoin() {
   if (!user.value) {
-    return navigateTo("/login"); // Opcional: guardar URL para volver
+    return navigateTo("/login");
   }
 
   console.log(user.value);
@@ -72,7 +65,7 @@ async function requestJoin() {
     const { error } = await supabase.from("profile_projects").insert({
       project_id: project.value.id,
       profile_id: user.value.sub,
-      status: "pending", // Por defecto, pero lo explicitamos
+      status: "pending",
       owner: false,
     });
 
@@ -80,13 +73,13 @@ async function requestJoin() {
 
     alreadyMember.value = true;
     toast.add({
-      title: "Solicitud enviada",
-      description: "El owner del proyecto ha sido notificado.",
+      title: t("pages.join.requestSent"),
+      description: t("pages.join.requestSentDesc"),
       color: "success",
     });
   } catch (err: any) {
     toast.add({
-      title: "Error al enviar solicitud",
+      title: t("pages.join.requestError"),
       description: err.message,
       color: "error",
     });
@@ -107,7 +100,7 @@ async function requestJoin() {
           />
           <h1 class="text-3xl font-bold text-white">{{ project.name }}</h1>
           <p class="text-gray-400">
-            Has sido invitado a unirte como Master a este proyecto.
+            {{ $t("pages.join.inviteTitle") }}
           </p>
         </div>
 
@@ -123,10 +116,12 @@ async function requestJoin() {
             <p
               class="text-xs text-gray-500 uppercase font-bold tracking-tighter"
             >
-              Creado por
+              {{ $t("pages.join.createdBy") }}
             </p>
             <p class="text-sm text-gray-200">
-              {{ project.profiles?.username || "Usuario anónimo" }}
+              {{
+                project.profiles?.username || $t("pages.join.anonymousUser")
+              }}
             </p>
           </div>
         </div>
@@ -134,7 +129,7 @@ async function requestJoin() {
         <div class="pt-4">
           <UButton
             v-if="!alreadyMember"
-            label="Solicitar unirse al proyecto"
+            :label="$t('pages.join.requestJoin')"
             icon="i-lucide-send"
             size="xl"
             block
@@ -146,7 +141,7 @@ async function requestJoin() {
             class="p-4 rounded-xl bg-primary-500/10 border border-primary-500/20 text-primary-400 flex items-center justify-center gap-2"
           >
             <UIcon name="i-lucide-clock" />
-            <span>Solicitud pendiente o ya eres parte del equipo</span>
+            <span>{{ $t("pages.join.pendingMember") }}</span>
           </div>
         </div>
       </div>

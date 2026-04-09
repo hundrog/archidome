@@ -7,23 +7,25 @@ const router = useRouter();
 const id = route.params.id as string;
 
 const toast = useToast();
+const { t } = useI18n();
 
-// ─── Estado del formulario ────────────────────────────────────────────────────
 const campaignStore = useCampaignStore();
 
-// ─── Tabs ─────────────────────────────────────────────────────────────────────
 const currentTab = ref("0");
 const loading = ref(false);
 const initialLoading = ref(true);
 
-const tabs = [
-  { label: "01 Hook", slot: "hook", icon: "i-lucide-book-open" },
-  { label: "02 Portal", slot: "portal", icon: "i-lucide-compass" },
-  { label: "03 Rules", slot: "rules", icon: "i-lucide-scroll" },
-  { label: "04 House", slot: "house", icon: "i-lucide-home" },
-];
+const tabs = computed(() => [
+  { label: t("pages.campaignEdit.tabHook"), slot: "hook", icon: "i-lucide-book-open" },
+  {
+    label: t("pages.campaignEdit.tabPortal"),
+    slot: "portal",
+    icon: "i-lucide-compass",
+  },
+  { label: t("pages.campaignEdit.tabRules"), slot: "rules", icon: "i-lucide-scroll" },
+  { label: t("pages.campaignEdit.tabHouse"), slot: "house", icon: "i-lucide-home" },
+]);
 
-// Validación por tab antes de avanzar
 function validateCurrentTab(): boolean {
   try {
     if (currentTab.value === "0") {
@@ -35,8 +37,8 @@ function validateCurrentTab(): boolean {
     } else if (currentTab.value === "3") {
       if (!campaignStore.form.project_id) {
         toast.add({
-          title: "Faltan datos",
-          description: "Selecciona un proyecto",
+          title: t("pages.campaignNew.toastMissing"),
+          description: t("pages.campaignEdit.toastSelectProject"),
           color: "warning",
         });
         return false;
@@ -47,7 +49,7 @@ function validateCurrentTab(): boolean {
     if (err instanceof z.ZodError) {
       const issue = err.issues[0];
       toast.add({
-        title: "Faltan datos",
+        title: t("pages.campaignNew.toastMissing"),
         description: issue?.message,
         color: "warning",
       });
@@ -60,7 +62,7 @@ function nextTab() {
   if (!validateCurrentTab()) return;
 
   const idx = parseInt(currentTab.value, 10);
-  if (idx !== -1 && idx < tabs.length - 1) {
+  if (idx !== -1 && idx < tabs.value.length - 1) {
     currentTab.value = (idx + 1).toString();
   }
 }
@@ -75,7 +77,6 @@ function prevTab() {
 const isLastTab = computed(() => currentTab.value === "3");
 const isFirstTab = computed(() => currentTab.value === "0");
 
-// ─── Load campaign data ────────────────────────────────────────────────────────
 onMounted(async () => {
   try {
     await campaignStore.fetchCampaignById(id);
@@ -107,8 +108,8 @@ onMounted(async () => {
   } catch (err: any) {
     console.error("Error loading campaign:", err);
     toast.add({
-      title: "Error",
-      description: "No se pudo cargar la campaña",
+      title: t("common.error"),
+      description: t("pages.campaignEdit.toastLoadError"),
       color: "error",
     });
     router.push("/campaigns");
@@ -117,7 +118,6 @@ onMounted(async () => {
   }
 });
 
-// ─── Submit ───────────────────────────────────────────────────────────────────
 async function onSubmit() {
   if (!validateCurrentTab()) return;
   loading.value = true;
@@ -161,22 +161,27 @@ async function onSubmit() {
     await campaignStore.updateCampaign(id, payload as any);
 
     toast.add({
-      title: "¡Campaña actualizada!",
-      description: `"${campaignStore.form.title}" fue guardada.`,
+      title: t("pages.campaignEdit.toastUpdated"),
+      description: t("pages.campaignEdit.toastUpdatedDesc", {
+        title: campaignStore.form.title,
+      }),
       color: "success",
     });
 
     router.push(`/campaigns/${id}`);
   } catch (err: any) {
-    toast.add({ title: "Error", description: err.message, color: "error" });
+    toast.add({
+      title: t("common.error"),
+      description: err.message,
+      color: "error",
+    });
   } finally {
     loading.value = false;
   }
 }
 
-// ─── SEO ──────────────────────────────────────────────────────────────────────
 useSeoMeta({
-  title: () => campaignStore.form.title ?? "Editar Campaña",
+  title: () => campaignStore.form.title ?? t("pages.campaignEdit.seoTitle"),
   description: () => campaignStore.form.description ?? "",
 });
 </script>
@@ -191,47 +196,41 @@ useSeoMeta({
 
   <div v-else class="min-h-screen bg-surface">
     <div class="max-w-3xl mx-auto px-4 py-10 space-y-8">
-      <!-- ── Encabezado ── -->
       <div>
         <NuxtLink
           :to="`/campaigns/${id}`"
           class="inline-flex items-center gap-2 font-body text-label-sm text-on-surface-dim hover:text-on-surface transition-colors mb-6"
         >
           <UIcon name="i-lucide-arrow-left" class="size-4" />
-          Volver a campaña
+          {{ $t("pages.campaignEdit.back") }}
         </NuxtLink>
         <h1 class="font-display text-display-sm text-on-surface">
-          Editar Campaña
+          {{ $t("pages.campaignEdit.heading") }}
         </h1>
         <p class="font-body text-body-sm text-on-surface-dim mt-1">
-          Realiza cambios en tu aventura
+          {{ $t("pages.campaignEdit.subtitle") }}
         </p>
       </div>
 
-      <!-- ── Tabs ── -->
       <UTabs v-model="currentTab" :items="tabs">
-        <!-- Hook -->
         <template #hook>
           <div class="pt-8">
             <CampaignFormStepHook />
           </div>
         </template>
 
-        <!-- Portal -->
         <template #portal>
           <div class="pt-8">
             <CampaignFormStepPortal />
           </div>
         </template>
 
-        <!-- Rules -->
         <template #rules>
           <div class="pt-8">
             <CampaignFormStepRules />
           </div>
         </template>
 
-        <!-- House -->
         <template #house>
           <div class="pt-8">
             <CampaignFormStepHouse />
@@ -239,7 +238,6 @@ useSeoMeta({
         </template>
       </UTabs>
 
-      <!-- ── Navegación ── -->
       <div
         class="flex items-center justify-between pt-4 border-t border-outline-variant/20"
       >
@@ -247,7 +245,7 @@ useSeoMeta({
           v-if="!isFirstTab"
           variant="ghost"
           icon="i-lucide-arrow-left"
-          label="Anterior"
+          :label="$t('pages.campaignEdit.previous')"
           class="rounded-full"
           @click="prevTab"
         />
@@ -257,7 +255,7 @@ useSeoMeta({
           v-if="!isLastTab"
           icon="i-lucide-arrow-right"
           trailing
-          label="Siguiente"
+          :label="$t('pages.campaignEdit.next')"
           class="gradient-primary rounded-full text-white"
           @click="nextTab"
         />
@@ -265,7 +263,7 @@ useSeoMeta({
           v-else
           icon="i-lucide-check"
           trailing
-          label="Guardar cambios"
+          :label="$t('common.save')"
           class="gradient-primary rounded-full text-white"
           :loading="loading"
           @click="onSubmit"

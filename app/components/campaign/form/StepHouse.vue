@@ -8,11 +8,11 @@ import type { Database } from "@/types/database.types";
 type Project = Database["public"]["Tables"]["projects"]["Row"];
 
 const campaignStore = useCampaignStore();
+const { t } = useI18n();
 
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 
-// ─── Proyectos ────────────────────────────────────────────────────────────────
 const projects = ref<FetchProject[]>([]);
 
 async function fetchProjects() {
@@ -32,16 +32,13 @@ async function fetchProjects() {
     `,
       )
       .eq("profile_id", user.value!.sub)
-      // Filtramos para traer solo donde eres dueño O donde ya te aceptaron
       .or("owner.eq.true,status.eq.accepted")
       .order("created_at", { foreignTable: "projects", ascending: false });
 
     if (error) throw error;
 
     projects.value = data.map((item) => {
-      // Usamos Type Assertion para decirle que projects es un objeto único
-      const project =
-        item.projects as unknown as Project
+      const project = item.projects as unknown as Project;
 
       return {
         ...project,
@@ -50,15 +47,13 @@ async function fetchProjects() {
       };
     });
   } catch (err: any) {
-  } 
+  }
 }
 
-// Fetch projects when component mounts
 onMounted(() => {
   fetchProjects();
 });
 
-// Also fetch when user changes
 watch(user, () => {
   if (user.value) {
     fetchProjects();
@@ -69,96 +64,102 @@ const projectOptions = computed(() =>
   projects.value.map((p: any) => ({ label: p.name, value: p.id })),
 );
 
-// ─── Resumen ──────────────────────────────────────────────────────────────────
-const playModeLabel: Record<string, string> = {
-  remote: "Remoto",
-  in_person: "Presencial",
-  hybrid: "Híbrido",
-};
+const playModeLabel = computed(() => ({
+  remote: t("campaign.playMode.remote"),
+  in_person: t("campaign.playMode.in_person"),
+  hybrid: t("campaign.playMode.hybrid"),
+}));
 
-const platformLabel: Record<string, string> = {
-  discord: "Discord",
-  roll20: "Roll20",
-  foundry: "Foundry VTT",
-  google_meet: "Google Meet",
-  tabletop_simulator: "Tabletop Simulator",
-  other: "Otro",
-};
+const platformLabel = computed(() => ({
+  discord: t("campaign.platform.discord"),
+  roll20: t("campaign.platform.roll20"),
+  foundry: t("campaign.platform.foundry"),
+  google_meet: t("campaign.platform.google_meet"),
+  tabletop_simulator: t("campaign.platform.tabletop_simulator"),
+  other: t("campaign.platform.other"),
+}));
 
-const frequencyLabel: Record<string, string> = {
-  weekly: "Semanal",
-  biweekly: "Quincenal",
-  monthly: "Mensual",
-  irregular: "Irregular",
-};
+const frequencyLabel = computed(() => ({
+  weekly: t("campaign.frequency.weekly"),
+  biweekly: t("campaign.frequency.biweekly"),
+  monthly: t("campaign.frequency.monthly"),
+  irregular: t("campaign.frequency.irregular"),
+}));
+
+const emDash = computed(() => t("pages.campaignDetail.emDash"));
 
 const summaryItems = computed(() =>
   [
     {
       icon: "i-lucide-scroll",
-      label: "Sistema",
+      label: t("campaign.form.house.labelSystem"),
       value: campaignStore.form.system,
     },
     {
       icon: "i-lucide-monitor",
-      label: "Modo",
+      label: t("campaign.form.house.labelMode"),
       value: campaignStore.form.play_mode
-        ? playModeLabel[campaignStore.form.play_mode]
-        : "—",
+        ? playModeLabel.value[campaignStore.form.play_mode]
+        : emDash.value,
     },
     {
       icon: "i-lucide-users",
-      label: "Jugadores",
+      label: t("campaign.form.house.labelPlayers"),
       value: `${campaignStore.form.current_players} / ${campaignStore.form.max_players}`,
     },
     {
       icon: "i-lucide-swords",
-      label: "Nivel",
-      value: `Nivel ${campaignStore.form.start_level}`,
+      label: t("campaign.form.house.labelLevel"),
+      value: t("campaign.form.house.levelN", {
+        n: campaignStore.form.start_level ?? 1,
+      }),
     },
     {
       icon: "i-lucide-calendar",
-      label: "Frecuencia",
+      label: t("campaign.form.house.labelFrequency"),
       value: campaignStore.form.frequency
-        ? frequencyLabel[campaignStore.form.frequency]
-        : "—",
+        ? frequencyLabel.value[campaignStore.form.frequency]
+        : emDash.value,
     },
     {
       icon: "i-lucide-globe",
-      label: "Idioma",
+      label: t("campaign.form.house.labelLanguage"),
       value: campaignStore.form.language,
     },
     {
       icon: "i-lucide-layout-grid",
-      label: "Plataforma",
+      label: t("campaign.form.house.labelPlatform"),
       value: campaignStore.form.virtual_platform
-        ? platformLabel[campaignStore.form.virtual_platform]
-        : "—",
+        ? platformLabel.value[campaignStore.form.virtual_platform]
+        : emDash.value,
     },
-  ].filter((i) => i.value && i.value !== "—"),
+  ].filter((i) => i.value && i.value !== emDash.value),
 );
 </script>
 
 <template>
   <div class="space-y-8">
-    <!-- ── Resumen ── -->
     <div class="space-y-4">
-      <h3 class="label-metadata text-on-surface-dim">Resumen de la campaña</h3>
+      <h3 class="label-metadata text-on-surface-dim">
+        {{ $t("campaign.form.house.summaryTitle") }}
+      </h3>
 
       <div class="p-5 rounded-xl bg-surface-low space-y-4">
-        <!-- Título y hook -->
         <div>
           <h2 class="font-display text-headline-sm text-on-surface">
-            {{ campaignStore.form.title || "Sin título" }}
+            {{
+              campaignStore.form.title || $t("campaign.form.house.noTitle")
+            }}
           </h2>
           <p
             class="font-body text-body-sm text-on-surface-dim mt-1 line-clamp-2"
           >
-            {{ campaignStore.form.hook || "Sin hook definido" }}
+            {{
+              campaignStore.form.hook || $t("campaign.form.house.noHook")
+            }}
           </p>
         </div>
 
-        <!-- Tags -->
         <div
           v-if="campaignStore?.form?.style_tags?.length"
           class="flex flex-wrap gap-1.5"
@@ -179,7 +180,6 @@ const summaryItems = computed(() =>
           </span>
         </div>
 
-        <!-- Stats grid -->
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div
             v-for="item in summaryItems"
@@ -202,9 +202,10 @@ const summaryItems = computed(() =>
 
     <USeparator />
 
-    <!-- ── Imagen ── -->
     <div class="space-y-2">
-      <h3 class="label-metadata text-on-surface-dim">Imagen de portada</h3>
+      <h3 class="label-metadata text-on-surface-dim">
+        {{ $t("campaign.form.house.coverImage") }}
+      </h3>
       <CampaignImageField
         :initial-url="campaignStore.imagePreview"
         @update="
@@ -218,19 +219,18 @@ const summaryItems = computed(() =>
 
     <USeparator />
 
-    <!-- ── Proyecto ── -->
     <UFormField
-      label="Proyecto"
+      :label="$t('campaign.form.house.project')"
       name="project_id"
       required
-      hint="Agrupa tus campañas bajo un proyecto"
+      :hint="$t('campaign.form.house.projectHint')"
     >
       <USelectMenu
         v-model="campaignStore.form.project_id"
         :items="projectOptions"
         value-key="value"
         label-key="label"
-        placeholder="Selecciona un proyecto"
+        :placeholder="$t('campaign.form.house.projectPlaceholder')"
         size="lg"
         class="w-full"
       />

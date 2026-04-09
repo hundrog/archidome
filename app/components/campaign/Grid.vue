@@ -5,6 +5,7 @@ import { useCampaignStore } from "@/stores/campaign";
 type Campaign = Database["public"]["Tables"]["campaigns"]["Row"];
 
 const store = useCampaignStore();
+const { t } = useI18n();
 const {
   coords,
   loading: geoLoading,
@@ -29,12 +30,10 @@ const radiusKm = computed({
   set: (val) => store.setRadiusKm(val),
 });
 
-// Fetch campaigns on mount
 onMounted(async () => {
   await store.fetchCampaigns();
 });
 
-// Update user coords when geolocation changes
 watch(
   () => coords.value,
   (newCoords) => {
@@ -56,24 +55,30 @@ async function toggleNearby() {
 function getDistance(campaign: Campaign): string | null {
   return store.getDistance(campaign);
 }
+
+const emptySubtitle = computed(() => {
+  if (store.nearbyOnly) {
+    return t("campaign.grid.emptyNearby", { radius: store.radiusKm });
+  }
+  if (store.searchQuery || store.modeFilter) {
+    return t("campaign.grid.emptyFilters");
+  }
+  return t("campaign.grid.emptyFirst");
+});
 </script>
 
 <template>
   <div class="bg-surface min-h-screen">
-    <!-- ── Hero ── -->
     <section
       class="relative min-h-130 flex flex-col items-center justify-center px-4 overflow-hidden"
     >
-      <!-- Fondo estrellado -->
       <div class="absolute inset-0 z-0">
         <img
           src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80"
           alt=""
           class="w-full h-full object-cover object-center"
         />
-        <!-- Overlay oscuro -->
         <div class="absolute inset-0 bg-surface/60" />
-        <!-- Fade radial desde el centro hacia los 4 bordes -->
         <div
           class="absolute inset-0"
           style="
@@ -86,35 +91,29 @@ function getDistance(campaign: Campaign): string | null {
           "
         />
       </div>
-      <!-- Contenido -->
       <div class="relative z-10 w-full text-center space-y-6">
-        <!-- Eyebrow -->
         <span
           class="label-metadata text-primary inline-flex items-center gap-2"
         >
           <UIcon name="i-lucide-compass" class="size-3" />
-          El portal está abierto
+          {{ $t("campaign.grid.eyebrow") }}
         </span>
 
-        <!-- Título -->
         <h1
           class="font-display text-display-md sm:text-display-lg text-on-surface leading-tight"
         >
-          Encuentra tu
+          {{ $t("campaign.grid.titleBefore") }}
           <span
             class="bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent"
           >
-            próxima aventura
+            {{ $t("campaign.grid.titleHighlight") }}
           </span>
         </h1>
 
-        <!-- Subtítulo -->
         <p class="font-body text-body-lg text-on-surface-dim max-w-xl mx-auto">
-          Conectando masters y jugadores a través del mundo. Tu próxima campaña
-          épica comienza con un click.
+          {{ $t("campaign.grid.subtitle") }}
         </p>
 
-        <!-- Filtros -->
         <CampaignSearchBar
           v-model:search="search"
           v-model:mode="modeFilter"
@@ -128,7 +127,6 @@ function getDistance(campaign: Campaign): string | null {
       </div>
     </section>
 
-    <!-- Skeleton -->
     <div
       v-if="store.loading"
       class="w-full mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -147,7 +145,6 @@ function getDistance(campaign: Campaign): string | null {
       </div>
     </div>
 
-    <!-- Grid -->
     <div
       v-else-if="store.filteredCampaigns.length"
       class="w-full mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
@@ -160,34 +157,29 @@ function getDistance(campaign: Campaign): string | null {
       />
     </div>
 
-    <!-- Empty -->
     <div
       v-else
       class="w-full mx-auto flex flex-col items-center justify-center py-24 gap-4 text-center"
     >
       <UIcon name="i-lucide-scroll" class="size-14 text-gray-700" />
-      <p class="text-gray-400 text-lg font-medium">No hay campañas</p>
+      <p class="text-gray-400 text-lg font-medium">
+        {{ $t("campaign.grid.emptyTitle") }}
+      </p>
       <p class="text-gray-600 text-sm">
-        {{
-          store.nearbyOnly
-            ? `No hay campañas en ${store.radiusKm} km de tu ubicación`
-            : store.searchQuery || store.modeFilter
-              ? "Intenta con otros filtros"
-              : "Sé el primero en crear una"
-        }}
+        {{ emptySubtitle }}
       </p>
       <UButton
         v-if="store.nearbyOnly"
         variant="ghost"
         icon="i-lucide-map-pin-off"
-        label="Ver todas"
+        :label="$t('campaign.grid.viewAll')"
         @click="store.setNearbyOnly(false)"
       />
       <UButton
         v-else-if="store.searchQuery || store.modeFilter"
         variant="ghost"
         icon="i-lucide-x"
-        label="Limpiar filtros"
+        :label="$t('campaign.grid.clearFilters')"
         @click="
           store.setSearchQuery('');
           store.setModeFilter(null);
@@ -197,7 +189,7 @@ function getDistance(campaign: Campaign): string | null {
         v-else
         to="/campaigns/new"
         icon="i-lucide-plus"
-        label="Crear campaña"
+        :label="$t('campaign.grid.createCampaign')"
         size="lg"
       />
     </div>

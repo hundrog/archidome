@@ -22,6 +22,7 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const toast = useToast();
 const store = useCampaignStore();
+const { t } = useI18n();
 const id = route.params.id as string;
 
 // ─── Fetch ────────────────────────────────────────────────────────────────────
@@ -41,7 +42,10 @@ const { data: campaign, pending } = await useAsyncData(
 );
 
 if (!campaign.value) {
-  throw createError({ statusCode: 404, message: "Campaña no encontrada" });
+  throw createError({
+    statusCode: 404,
+    message: t("pages.campaignDetail.notFound"),
+  });
 }
 
 // ─── Owner ────────────────────────────────────────────────────────────────────
@@ -56,11 +60,11 @@ async function deleteCampaign() {
   try {
     store.currentCampaign = campaign.value as any;
     await store.deleteCampaign(id);
-    toast.add({ title: "Campaña eliminada", color: "success" });
+    toast.add({ title: t("pages.campaignDetail.deleted"), color: "success" });
     router.push("/campaigns");
   } catch (err: any) {
     toast.add({
-      title: "Error al eliminar",
+      title: t("pages.campaignDetail.deleteError"),
       description: err.message,
       color: "error",
     });
@@ -80,27 +84,27 @@ const safeImageUrl = computed(() => {
   }
 });
 
-const playModeLabel: Record<string, string> = {
-  remote: "Remoto",
-  in_person: "Presencial",
-  hybrid: "Híbrido",
-};
+const playModeLabel = computed(() => ({
+  remote: t("campaign.playMode.remote"),
+  in_person: t("campaign.playMode.in_person"),
+  hybrid: t("campaign.playMode.hybrid"),
+}));
 
-const frequencyLabel: Record<string, string> = {
-  weekly: "Semanal",
-  biweekly: "Quincenal",
-  monthly: "Mensual",
-  irregular: "Irregular",
-};
+const frequencyLabel = computed(() => ({
+  weekly: t("campaign.frequency.weekly"),
+  biweekly: t("campaign.frequency.biweekly"),
+  monthly: t("campaign.frequency.monthly"),
+  irregular: t("campaign.frequency.irregular"),
+}));
 
-const platformLabel: Record<string, string> = {
-  discord: "Discord",
-  roll20: "Roll20",
-  foundry: "Foundry VTT",
-  google_meet: "Google Meet",
-  tabletop_simulator: "Tabletop Simulator",
-  other: "Otro",
-};
+const platformLabel = computed(() => ({
+  discord: t("campaign.platform.discord"),
+  roll20: t("campaign.platform.roll20"),
+  foundry: t("campaign.platform.foundry"),
+  google_meet: t("campaign.platform.google_meet"),
+  tabletop_simulator: t("campaign.platform.tabletop_simulator"),
+  other: t("campaign.platform.other"),
+}));
 
 const houseRules = computed(() => {
   const raw = campaign.value?.house_rules;
@@ -123,7 +127,8 @@ const proxiedAvatar = computed(() => {
 
 // ─── SEO ──────────────────────────────────────────────────────────────────────
 useSeoMeta({
-  title: () => campaign.value?.title ?? "Campaña",
+  title: () =>
+    campaign.value?.title ?? t("pages.campaignDetail.seoFallbackTitle"),
   description: () => campaign.value?.description ?? "",
   ogImage: () => campaign.value?.image_url ?? undefined,
 });
@@ -176,7 +181,7 @@ useSeoMeta({
               style="background: rgba(74, 222, 128, 0.15); color: #4ade80"
             >
               <span class="size-1.5 rounded-full bg-green-400 inline-block" />
-              Reclutando
+              {{ $t("pages.campaignDetail.recruiting") }}
             </span>
           </div>
           <h1
@@ -196,7 +201,7 @@ useSeoMeta({
           <!-- Session Logistics -->
           <div class="bg-surface-low rounded-xl p-6 space-y-5">
             <h3 class="label-metadata text-on-surface-dim">
-              Session Logistics
+              {{ $t("pages.campaignDetail.sessionLogistics") }}
             </h3>
             <div class="grid grid-cols-2 gap-4">
               <div class="flex items-start gap-3">
@@ -206,13 +211,13 @@ useSeoMeta({
                 />
                 <div>
                   <p class="label-metadata" style="font-size: 0.6rem">
-                    Schedule
+                    {{ $t("pages.campaignDetail.schedule") }}
                   </p>
                   <p class="font-body text-body-sm text-on-surface">
                     {{
                       campaign.frequency
                         ? frequencyLabel[campaign.frequency]
-                        : "—"
+                        : $t("pages.campaignDetail.emDash")
                     }}
                   </p>
                 </div>
@@ -223,7 +228,9 @@ useSeoMeta({
                   class="size-4 text-on-surface-dim mt-0.5 shrink-0"
                 />
                 <div>
-                  <p class="label-metadata" style="font-size: 0.6rem">Format</p>
+                  <p class="label-metadata" style="font-size: 0.6rem">
+                    {{ $t("pages.campaignDetail.format") }}
+                  </p>
                   <p class="font-body text-body-sm text-on-surface">
                     {{ playModeLabel[campaign.play_mode] }}
                     <span
@@ -241,10 +248,16 @@ useSeoMeta({
                   class="size-4 text-on-surface-dim mt-0.5 shrink-0"
                 />
                 <div>
-                  <p class="label-metadata" style="font-size: 0.6rem">Spots</p>
+                  <p class="label-metadata" style="font-size: 0.6rem">
+                    {{ $t("pages.campaignDetail.spots") }}
+                  </p>
                   <p class="font-body text-body-sm text-on-surface">
-                    {{ campaign.current_players }} /
-                    {{ campaign.max_players }} jugadores
+                    {{
+                      $t("pages.campaignDetail.playersCount", {
+                        current: campaign.current_players,
+                        max: campaign.max_players,
+                      })
+                    }}
                   </p>
                 </div>
               </div>
@@ -255,7 +268,7 @@ useSeoMeta({
                 />
                 <div>
                   <p class="label-metadata" style="font-size: 0.6rem">
-                    Language
+                    {{ $t("pages.campaignDetail.language") }}
                   </p>
                   <p class="font-body text-body-sm text-on-surface">
                     {{ campaign.language }}
@@ -269,7 +282,7 @@ useSeoMeta({
                 />
                 <div>
                   <p class="label-metadata" style="font-size: 0.6rem">
-                    Duration
+                    {{ $t("pages.campaignDetail.duration") }}
                   </p>
                   <p class="font-body text-body-sm text-on-surface">
                     {{ campaign.duration }}
@@ -283,10 +296,14 @@ useSeoMeta({
                 />
                 <div>
                   <p class="label-metadata" style="font-size: 0.6rem">
-                    Start Level
+                    {{ $t("pages.campaignDetail.startLevel") }}
                   </p>
                   <p class="font-body text-body-sm text-on-surface">
-                    Nivel {{ campaign.start_level }}
+                    {{
+                      $t("pages.campaignDetail.levelN", {
+                        n: campaign.start_level,
+                      })
+                    }}
                   </p>
                 </div>
               </div>
@@ -295,12 +312,16 @@ useSeoMeta({
 
           <!-- Game Master -->
           <div class="bg-surface-low rounded-xl p-6 space-y-5">
-            <h3 class="label-metadata text-on-surface-dim">Game Master</h3>
+            <h3 class="label-metadata text-on-surface-dim">
+              {{ $t("pages.campaignDetail.gameMaster") }}
+            </h3>
             <div class="flex items-start gap-4">
               <UAvatar
                 v-if="campaign.profiles?.avatar_url"
                 :src="proxiedAvatar"
-                :alt="campaign.profiles.full_name ?? 'GM'"
+                :alt="
+                  campaign.profiles.full_name ?? $t('pages.campaignDetail.gmAlt')
+                "
                 class="size-8 rounded-full object-cover ring-2 ring-surface-variant shrink-0"
               />
               <div
@@ -314,7 +335,10 @@ useSeoMeta({
               </div>
               <div class="flex-1 min-w-0 space-y-1">
                 <h4 class="font-display text-headline-sm text-on-surface">
-                  {{ campaign.profiles?.full_name ?? "GM desconocido" }}
+                  {{
+                    campaign.profiles?.full_name ??
+                    $t("pages.campaignDetail.gmUnknown")
+                  }}
                 </h4>
                 <p
                   v-if="campaign.profiles?.username"
@@ -339,7 +363,9 @@ useSeoMeta({
               "
               class="pt-2 space-y-2"
             >
-              <p class="label-metadata text-on-surface-dim">Contacto</p>
+              <p class="label-metadata text-on-surface-dim">
+                {{ $t("pages.campaignDetail.contact") }}
+              </p>
               <div class="flex flex-wrap gap-2">
                 <div
                   v-if="campaign.profiles?.discord"
@@ -371,7 +397,7 @@ useSeoMeta({
                     name="i-simple-icons-x"
                     class="size-4 text-on-surface"
                   />
-                  Twitter
+                  {{ $t("pages.campaignDetail.twitter") }}
                 </div>
                 <div
                   v-if="campaign.profiles?.instagram"
@@ -382,7 +408,7 @@ useSeoMeta({
                     class="size-4"
                     style="color: #e1306c"
                   />
-                  Instagram
+                  {{ $t("pages.campaignDetail.instagram") }}
                 </div>
               </div>
             </div>
@@ -401,7 +427,7 @@ useSeoMeta({
                 class="font-display text-headline-md text-on-surface flex items-center gap-2"
               >
                 <UIcon name="i-lucide-book-open" class="size-5 text-primary" />
-                About the Adventure
+                {{ $t("pages.campaignDetail.aboutAdventure") }}
               </h2>
               <p
                 class="font-body text-body-md text-on-surface-dim leading-relaxed whitespace-pre-line"
@@ -416,7 +442,7 @@ useSeoMeta({
                 class="font-display text-headline-md text-on-surface flex items-center gap-2"
               >
                 <UIcon name="i-lucide-scroll" class="size-5 text-primary" />
-                House Rules
+                {{ $t("pages.campaignDetail.houseRules") }}
               </h2>
               <div class="space-y-3">
                 <div
@@ -452,7 +478,7 @@ useSeoMeta({
           <!-- Derecha: What to Expect -->
           <div class="space-y-4">
             <h2 class="font-display text-headline-md text-on-surface">
-              What to Expect
+              {{ $t("pages.campaignDetail.whatToExpect") }}
             </h2>
             <div class="space-y-3">
               <div

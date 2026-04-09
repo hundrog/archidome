@@ -3,72 +3,71 @@
 import { portalSchema } from "@/schemas/campaign";
 
 const campaignStore = useCampaignStore();
+const { t } = useI18n();
 
-// ─── Opciones ─────────────────────────────────────────────────────────────────
-const playModeOptions = [
+const playModeOptions = computed(() => [
   {
-    label: "Remoto",
+    label: t("campaign.playMode.remote"),
     value: "remote",
     icon: "i-lucide-monitor",
-    description: "Sesiones 100% en línea",
+    description: t("campaign.playModeDesc.remote"),
   },
   {
-    label: "Presencial",
+    label: t("campaign.playMode.in_person"),
     value: "in_person",
     icon: "i-lucide-users",
-    description: "Nos vemos en persona",
+    description: t("campaign.playModeDesc.in_person"),
   },
   {
-    label: "Híbrido",
+    label: t("campaign.playMode.hybrid"),
     value: "hybrid",
     icon: "i-lucide-shuffle",
-    description: "Combinación de ambos",
+    description: t("campaign.playModeDesc.hybrid"),
   },
-];
+]);
 
-const platformOptions = [
-  { label: "Discord", value: "discord", icon: "i-simple-icons-discord" },
-  { label: "Roll20", value: "roll20", icon: "i-simple-icons-roll20" },
-  { label: "Foundry VTT", value: "foundry", icon: "i-lucide-castle" },
+const platformOptions = computed(() => [
+  { label: t("campaign.platform.discord"), value: "discord", icon: "i-simple-icons-discord" },
+  { label: t("campaign.platform.roll20"), value: "roll20", icon: "i-simple-icons-roll20" },
+  { label: t("campaign.platform.foundry"), value: "foundry", icon: "i-lucide-castle" },
   {
-    label: "Google Meet",
+    label: t("campaign.platform.google_meet"),
     value: "google_meet",
     icon: "i-simple-icons-googlemeet",
   },
   {
-    label: "Tabletop Simulator",
+    label: t("campaign.platform.tabletop_simulator"),
     value: "tabletop_simulator",
     icon: "i-lucide-box",
   },
-  { label: "Otro", value: "other", icon: "i-lucide-more-horizontal" },
-];
+  { label: t("campaign.platform.other"), value: "other", icon: "i-lucide-more-horizontal" },
+]);
 
-const frequencyOptions = [
-  { label: "Semanal", value: "weekly" },
-  { label: "Quincenal", value: "biweekly" },
-  { label: "Mensual", value: "monthly" },
-  { label: "Irregular", value: "irregular" },
-];
+const frequencyOptions = computed(() => [
+  { label: t("campaign.frequency.weekly"), value: "weekly" },
+  { label: t("campaign.frequency.biweekly"), value: "biweekly" },
+  { label: t("campaign.frequency.monthly"), value: "monthly" },
+  { label: t("campaign.frequency.irregular"), value: "irregular" },
+]);
 
-const durationOptions = [
-  { label: "1-2 horas", value: "1-2 horas" },
-  { label: "2-3 horas", value: "2-3 horas" },
-  { label: "3-4 horas", value: "3-4 horas" },
-  { label: "4+ horas", value: "4+ horas" },
-];
+const durationOptions = computed(() => [
+  { label: t("campaign.duration.1_2"), value: "1-2 horas" },
+  { label: t("campaign.duration.2_3"), value: "2-3 horas" },
+  { label: t("campaign.duration.3_4"), value: "3-4 horas" },
+  { label: t("campaign.duration.4plus"), value: "4+ horas" },
+]);
 
-const timezoneOptions = [
-  { label: "UTC-8 (PST)", value: "UTC-8" },
-  { label: "UTC-7 (MST)", value: "UTC-7" },
-  { label: "UTC-6 (CST)", value: "UTC-6" },
-  { label: "UTC-5 (EST)", value: "UTC-5" },
-  { label: "UTC-4", value: "UTC-4" },
-  { label: "UTC+0", value: "UTC+0" },
-  { label: "UTC+1", value: "UTC+1" },
-  { label: "UTC+2", value: "UTC+2" },
-];
+const timezoneOptions = computed(() => [
+  { label: t("campaign.timezone.utc_m8"), value: "UTC-8" },
+  { label: t("campaign.timezone.utc_m7"), value: "UTC-7" },
+  { label: t("campaign.timezone.utc_m6"), value: "UTC-6" },
+  { label: t("campaign.timezone.utc_m5"), value: "UTC-5" },
+  { label: t("campaign.timezone.utc_m4"), value: "UTC-4" },
+  { label: t("campaign.timezone.utc_0"), value: "UTC+0" },
+  { label: t("campaign.timezone.utc_p1"), value: "UTC+1" },
+  { label: t("campaign.timezone.utc_p2"), value: "UTC+2" },
+]);
 
-// Solo mostrar plataforma y ubicación según modo
 const showPlatform = computed(
   () =>
     campaignStore.form.play_mode === "remote" ||
@@ -83,8 +82,11 @@ const showLocation = computed(
 
 <template>
   <UForm :schema="portalSchema" :state="campaignStore.form" class="space-y-8">
-    <!-- Modo de juego -->
-    <UFormField label="Game Format" name="play_mode" required>
+    <UFormField
+      :label="$t('campaign.form.gameFormat')"
+      name="play_mode"
+      required
+    >
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-1">
         <button
           v-for="opt in playModeOptions"
@@ -136,7 +138,6 @@ const showLocation = computed(
               {{ opt.description }}
             </p>
           </div>
-          <!-- Check -->
           <UIcon
             v-if="campaignStore.form.play_mode === opt.value"
             name="i-lucide-check-circle"
@@ -146,11 +147,10 @@ const showLocation = computed(
       </div>
     </UFormField>
 
-    <!-- Plataforma virtual -->
     <Transition name="fade">
       <UFormField
         v-if="showPlatform"
-        label="Virtual Tabletop Platform"
+        :label="$t('campaign.form.virtualPlatform')"
         name="virtual_platform"
       >
         <USelectMenu
@@ -158,14 +158,13 @@ const showLocation = computed(
           :items="platformOptions"
           value-key="value"
           label-key="label"
-          placeholder="Selecciona una plataforma"
+          :placeholder="$t('campaign.form.platformPlaceholder')"
           size="lg"
           class="w-full"
         />
       </UFormField>
     </Transition>
 
-    <!-- Ubicación -->
     <Transition name="fade">
       <CampaignLocationField
         v-if="showLocation"
@@ -187,55 +186,52 @@ const showLocation = computed(
 
     <USeparator />
 
-    <!-- Scheduling -->
     <div class="space-y-4">
-      <h3 class="label-metadata text-on-surface-dim">Scheduling</h3>
+      <h3 class="label-metadata text-on-surface-dim">
+        {{ $t("campaign.form.scheduling") }}
+      </h3>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Frecuencia -->
-        <UFormField label="Frequency" name="frequency">
+        <UFormField :label="$t('campaign.form.frequency')" name="frequency">
           <USelectMenu
             v-model="campaignStore.form.frequency"
             :items="frequencyOptions"
             value-key="value"
             label-key="label"
-            placeholder="Frecuencia"
+            :placeholder="$t('campaign.form.frequencyPlaceholder')"
             size="lg"
             class="w-full"
           />
         </UFormField>
 
-        <!-- Idioma -->
-        <UFormField label="Language" name="language">
+        <UFormField :label="$t('campaign.form.language')" name="language">
           <UInput
             v-model="campaignStore.form.language"
-            placeholder="Español"
+            :placeholder="$t('campaign.form.languagePlaceholder')"
             size="lg"
             class="w-full"
           />
         </UFormField>
 
-        <!-- Timezone -->
-        <UFormField label="Timezone" name="timezone">
+        <UFormField :label="$t('campaign.form.timezone')" name="timezone">
           <USelectMenu
             v-model="campaignStore.form.timezone"
             :items="timezoneOptions"
             value-key="value"
             label-key="label"
-            placeholder="UTC-6 (CST)"
+            :placeholder="$t('campaign.form.timezonePlaceholder')"
             size="lg"
             class="w-full"
           />
         </UFormField>
 
-        <!-- Duración -->
-        <UFormField label="Duration" name="duration">
+        <UFormField :label="$t('campaign.form.duration')" name="duration">
           <USelectMenu
             v-model="campaignStore.form.duration"
             :items="durationOptions"
             value-key="value"
             label-key="label"
-            placeholder="3-4 horas"
+            :placeholder="$t('campaign.form.durationPlaceholder')"
             size="lg"
             class="w-full"
           />

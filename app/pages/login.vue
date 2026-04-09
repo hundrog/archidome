@@ -1,33 +1,34 @@
 <script setup lang="ts">
-import type { Provider } from '@supabase/supabase-js'
+import type { Provider } from "@supabase/supabase-js";
 const supabase = useSupabaseClient();
 const config = useRuntimeConfig();
+const { t } = useI18n();
 
 definePageMeta({
   layout: "auth",
 });
 
 useSeoMeta({
-  title: "Login",
-  description: "Login to your account to continue",
+  title: () => t("pages.login.title"),
+  description: () => t("pages.login.description"),
 });
 
-const providers = [
+const providers = computed(() => [
   {
-    label: "Google",
+    label: t("pages.login.google"),
     icon: "i-simple-icons-google",
     onClick: () => {
-      signInWithProvider('google');
+      signInWithProvider("google");
     },
   },
   {
-    label: "Discord",
+    label: t("pages.login.discord"),
     icon: "i-simple-icons-discord",
     onClick: () => {
-      signInWithProvider('discord');
+      signInWithProvider("discord");
     },
   },
-];
+]);
 
 async function signInWithProvider(provider: Provider) {
   await supabase.auth.signInWithOAuth({
@@ -40,10 +41,17 @@ async function signInWithProvider(provider: Provider) {
 </script>
 
 <template>
-  <UAuthForm :providers="providers" title="Welcome back" icon="i-lucide-lock">
+  <UAuthForm
+    :providers="providers"
+    :title="$t('pages.login.welcomeBack')"
+    icon="i-lucide-lock"
+  >
     <template #footer>
-      By signing in, you agree to our
-      <ULink to="/" class="text-primary font-medium">Terms of Service</ULink>.
+      {{ $t("pages.login.signInAgree") }}
+      <ULink to="/" class="text-primary font-medium">{{
+        $t("pages.login.termsLink")
+      }}</ULink
+      >.
     </template>
   </UAuthForm>
 </template>

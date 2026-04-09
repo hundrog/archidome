@@ -4,16 +4,18 @@ import type { NavigationMenuItem } from "@nuxt/ui";
 const route = useRoute();
 const user = useSupabaseUser();
 const supabase = useSupabaseClient();
+const { t } = useI18n();
 
-const footerItems = [
+const footerItems = computed(() => [
   {
     to: "/privacy",
-    label: "Privacy Policy",
+    label: t("layout.privacyPolicy"),
     icon: "i-lucide-shield",
     auth: false,
-  },{
+  },
+  {
     to: "/terms",
-    label: "Terms of Service",
+    label: t("layout.termsOfService"),
     icon: "i-lucide-file-text",
     auth: false,
   },
@@ -21,43 +23,43 @@ const footerItems = [
     to: "https://www.buymeacoffee.com/the.blue.pixel",
     target: "_blank",
     rel: "noopener noreferrer",
-    label: "Buy me a coffee",
+    label: t("layout.buyMeACoffee"),
     icon: "i-simple-icons-buymeacoffee",
     auth: false,
   },
-];
+]);
 
-const baseItems = [
+const baseItems = computed(() => [
   {
     to: "https://www.buymeacoffee.com/the.blue.pixel",
     target: "_blank",
     rel: "noopener noreferrer",
-    label: "Buy me a coffee",
+    label: t("layout.buyMeACoffee"),
     icon: "i-simple-icons-buymeacoffee",
     auth: false,
   },
   {
-    label: "Crear campaña",
+    label: t("layout.createCampaign"),
     to: "/campaigns/new",
     icon: "i-lucide-plus",
     auth: false,
   },
   {
-    label: "Proyectos",
+    label: t("layout.projects"),
     to: "/projects",
     icon: "i-lucide-folder",
     auth: true,
   },
   {
-    label: "Settings",
+    label: t("layout.settings"),
     to: "/settings",
     icon: "i-lucide-settings",
     auth: true,
   },
-];
+]);
 
 const items = computed<NavigationMenuItem[]>(() => [
-  baseItems
+  baseItems.value
     .filter((item) => !item.auth || !!user.value)
     .map(({ auth, ...item }) => ({
       ...item,
@@ -78,8 +80,12 @@ const logout = async () => {
         <div
           class="logo-text logo-image inline-flex items-center gap-2 font-display text-xl text-on-surface"
         >
-          <img src="/arcane-logo.png" alt="Rollatable" class="h-8 w-auto" />
-          <p>The Archidome</p>
+          <img
+            src="/arcane-logo.png"
+            :alt="$t('brand.logoAlt')"
+            class="h-8 w-auto"
+          />
+          <p>{{ $t("brand.name") }}</p>
         </div>
       </template>
 
@@ -90,8 +96,8 @@ const logout = async () => {
           color="neutral"
           variant="ghost"
           icon="i-lucide-log-out"
-          aria-label="Logout"
-          label="Logout"
+          :aria-label="$t('layout.logout')"
+          :label="$t('layout.logout')"
           v-if="user"
           @click="logout"
         />
@@ -101,8 +107,8 @@ const logout = async () => {
           variant="ghost"
           to="/login"
           icon="i-lucide-log-in"
-          aria-label="Login"
-          label="Login"
+          :aria-label="$t('layout.login')"
+          :label="$t('layout.login')"
           v-else
         />
       </template>
@@ -120,14 +126,16 @@ const logout = async () => {
       <slot />
     </UMain>
 
-<UFooter>
-    <template #left>
-      <p class="text-muted text-sm">Copyright © {{ new Date().getFullYear() }}</p>
-    </template>
-    
-    <template #right>
-      <UNavigationMenu :items="footerItems" variant="link" orientation="vertical" />
-    </template>
-  </UFooter>
+    <UFooter>
+      <template #left>
+        <p class="text-muted text-sm">
+          {{ $t("layout.copyright", { year: new Date().getFullYear() }) }}
+        </p>
+      </template>
+
+      <template #right>
+        <UNavigationMenu :items="footerItems" variant="link" orientation="vertical" />
+      </template>
+    </UFooter>
   </UApp>
 </template>

@@ -1,16 +1,14 @@
 <!-- components/user/ProjectsList.vue -->
 <script setup lang="ts">
-// ─── Tipos ────────────────────────────────────────────────────────────────────
 import type { Database } from "@/types/database.types";
 type Project = Database["public"]["Tables"]["projects"]["Row"];
 
-// ─── Setup ────────────────────────────────────────────────────────────────────
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const toast = useToast();
 const config = useRuntimeConfig();
+const { t } = useI18n();
 
-// ─── Estado ───────────────────────────────────────────────────────────────────
 const projects = ref<Project[]>([]);
 const loading = ref(false);
 const newName = ref("");
@@ -18,32 +16,28 @@ const creating = ref(false);
 const showInviteModal = ref(false);
 const projectToInvite = ref<Project | null>(null);
 
-// Función para abrir el modal de invitación
 function openInviteModal(project: Project) {
   projectToInvite.value = project;
   showInviteModal.value = true;
 }
 
-// Función para copiar al portapapeles
 async function copyInviteLink() {
   if (!projectToInvite.value?.slug) return;
 
-  // Construimos la URL basada en el origin actual
   const url = `${config.public.clientUrl}/join/${projectToInvite.value.slug}`;
 
   try {
     await navigator.clipboard.writeText(url);
     toast.add({
-      title: "Enlace copiado",
-      description: "Ya puedes compartirlo con tus jugadores",
+      title: t("project.list.linkCopied"),
+      description: t("project.list.linkCopiedDesc"),
       color: "success",
     });
   } catch (err) {
-    toast.add({ title: "Error al copiar", color: "error" });
+    toast.add({ title: t("project.list.copyError"), color: "error" });
   }
 }
 
-// ─── Fetch ────────────────────────────────────────────────────────────────────
 async function fetchProjects() {
   loading.value = true;
   try {
@@ -62,16 +56,13 @@ async function fetchProjects() {
     `,
       )
       .eq("profile_id", user.value!.sub)
-      // Filtramos para traer solo donde eres dueño O donde ya te aceptaron
       .or("owner.eq.true,status.eq.accepted")
       .order("created_at", { foreignTable: "projects", ascending: false });
 
     if (error) throw error;
 
     projects.value = data.map((item) => {
-      // Usamos Type Assertion para decirle que projects es un objeto único
-      const project =
-        item.projects as unknown as Project
+      const project = item.projects as unknown as Project;
 
       return {
         ...project,
@@ -81,7 +72,7 @@ async function fetchProjects() {
     });
   } catch (err: any) {
     toast.add({
-      title: "Error al cargar proyectos",
+      title: t("project.list.loadError"),
       description: err.message,
       color: "error",
     });
@@ -92,7 +83,6 @@ async function fetchProjects() {
 
 await fetchProjects();
 
-// ─── Crear ────────────────────────────────────────────────────────────────────
 async function createProject() {
   if (!newName.value.trim()) return;
   creating.value = true;
@@ -107,10 +97,10 @@ async function createProject() {
 
     projects.value.push(data);
     newName.value = "";
-    toast.add({ title: "Proyecto creado", color: "success" });
+    toast.add({ title: t("project.list.created"), color: "success" });
   } catch (err: any) {
     toast.add({
-      title: "Error al crear",
+      title: t("project.list.createError"),
       description: err.message,
       color: "error",
     });
@@ -119,10 +109,8 @@ async function createProject() {
   }
 }
 
-// Suscribirse a cambios en la tabla pivote para notificaciones en tiempo real
 let inviteChannel: any = null;
 onMounted(() => {
-  // Suscribirse a inserciones en la tabla pivote
   inviteChannel = supabase
     .channel("nuevas-solicitudes")
     .on(
@@ -131,42 +119,33 @@ onMounted(() => {
         event: "INSERT",
         schema: "public",
         table: "profile_projects",
-        // Opcional: Podrías filtrar por status 'pending'
         filter: `status=eq.pending`,
       },
       (payload) => {
-        // payload.new tiene la info de la nueva relación
         const newRequest = payload.new;
 
-        // Verificamos si el proyecto de la solicitud pertenece a la lista actual del usuario
         const project = projects.value.find(
           (p) => p.id === newRequest.project_id,
         );
 
         if (project) {
           toast.add({
-            title: "Nueva solicitud",
-            description: `Alguien quiere unirse a "${project.name}"`,
+            title: t("project.list.newRequest"),
+            description: t("project.list.newRequestDesc", { name: project.name }),
             color: "primary",
             actions: [
               {
-                label: "Ver solicitudes",
-                onClick: () => {
-                  /* Aquí podrías abrir un modal de gestión */
-                },
+                label: t("project.list.viewRequests"),
+                onClick: () => {},
               },
             ],
           });
-
-          // Opcional: Refrescar datos o marcar el proyecto con un punto rojo
-          // fetchProjects();
         }
       },
     )
     .subscribe();
 });
 
-// Limpiar la suscripción al desmontar el componente
 onUnmounted(() => {
   if (inviteChannel) {
     supabase.removeChannel(inviteChannel);
@@ -176,15 +155,14 @@ onUnmounted(() => {
 
 <template>
   <div class="space-y-6">
-    <!-- ── Crear nuevo proyecto ── -->
     <div class="space-y-2">
       <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-        Nuevo proyecto
+        {{ $t("project.list.newProject") }}
       </h3>
       <div class="flex gap-2">
         <UInput
           v-model="newName"
-          placeholder="Nombre del proyecto"
+          :placeholder="$t('project.list.projectNamePlaceholder')"
           size="lg"
           class="flex-1"
           @keydown.enter="createProject"
@@ -194,7 +172,7 @@ onUnmounted(() => {
           size="lg"
           :loading="creating"
           :disabled="!newName.trim()"
-          label="Crear"
+          :label="$t('common.create')"
           @click="createProject"
         />
       </div>
@@ -202,13 +180,11 @@ onUnmounted(() => {
 
     <USeparator />
 
-    <!-- ── Lista ── -->
     <div class="space-y-2">
       <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-        Tus proyectos
+        {{ $t("project.list.yourProjects") }}
       </h3>
 
-      <!-- Loading -->
       <div v-if="loading" class="space-y-2">
         <div
           v-for="n in 3"
@@ -217,16 +193,14 @@ onUnmounted(() => {
         />
       </div>
 
-      <!-- Empty -->
       <div
         v-else-if="!projects.length"
         class="flex flex-col items-center justify-center py-12 gap-3 text-center rounded-xl border-2 border-dashed border-gray-800"
       >
         <UIcon name="i-lucide-folder" class="size-10 text-gray-700" />
-        <p class="text-sm text-gray-500">No tienes proyectos todavía</p>
+        <p class="text-sm text-gray-500">{{ $t("project.list.noProjects") }}</p>
       </div>
 
-      <!-- Items -->
       <TransitionGroup v-else name="list" tag="div" class="space-y-2">
         <div
           v-for="project in projects"
@@ -235,12 +209,10 @@ onUnmounted(() => {
         >
           <UIcon name="i-lucide-folder" class="size-4 text-gray-500 shrink-0" />
 
-          <!-- Modo lectura -->
           <span class="flex-1 text-sm text-gray-200 truncate">
             {{ project.name }}
           </span>
 
-          <!-- Acciones -->
           <div class="flex items-center gap-1 shrink-0">
             <UButton
               :to="`/projects/${project.id}`"
@@ -248,14 +220,14 @@ onUnmounted(() => {
               size="sm"
               color="primary"
               variant="ghost"
-              title="Ver detalles"
+              :title="$t('project.list.detailsTitle')"
             />
             <UButton
               icon="i-lucide-link"
               size="sm"
               color="neutral"
               variant="ghost"
-              title="Invitar Master"
+              :title="$t('project.list.inviteMaster')"
               @click="openInviteModal(project)"
             />
           </div>
@@ -267,13 +239,12 @@ onUnmounted(() => {
 
     <div class="space-y-2">
       <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">
-        Solicitudes de unión
+        {{ $t("project.list.inboxTitle") }}
       </h3>
       <ProjectInboxRequests />
     </div>
   </div>
 
-  <!-- ── Modal invitación ── -->
   <UModal v-model:open="showInviteModal">
     <template #content>
       <div class="p-6 space-y-5">
@@ -282,12 +253,14 @@ onUnmounted(() => {
             <UIcon name="i-lucide-user-plus" class="size-5 text-primary-400" />
           </div>
           <h3 class="text-lg font-semibold text-white">
-            Invitar a {{ projectToInvite?.name }}
+            {{
+              $t("project.list.inviteTitle", { name: projectToInvite?.name })
+            }}
           </h3>
         </div>
 
         <p class="text-sm text-gray-400">
-          Cualquier Master con este enlace podrá solicitar unirse a tu proyecto.
+          {{ $t("project.list.inviteBody") }}
         </p>
 
         <div
@@ -297,13 +270,13 @@ onUnmounted(() => {
             {{
               projectToInvite?.slug
                 ? `${config.public.clientUrl}/join/${projectToInvite.slug}`
-                : "Generando..."
+                : $t("common.generating")
             }}
           </span>
           <UButton
             icon="i-lucide-copy"
             size="sm"
-            label="Copiar"
+            :label="$t('common.copy')"
             color="neutral"
             @click="copyInviteLink"
           />
@@ -313,7 +286,7 @@ onUnmounted(() => {
           <UButton
             variant="soft"
             color="neutral"
-            label="Cerrar"
+            :label="$t('common.close')"
             @click="showInviteModal = false"
           />
         </div>

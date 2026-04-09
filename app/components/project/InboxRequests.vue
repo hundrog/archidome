@@ -15,14 +15,13 @@ type ProfileProject =
 const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const toast = useToast();
+const { t } = useI18n();
 
 const requests = ref<ProfileProject[]>([]);
 const loading = ref(true);
 
-// --- Cargar Solicitudes ---
 async function fetchRequests() {
   loading.value = true;
-  // Nota: Filtramos las solicitudes de proyectos donde YO soy el creador
   const { data, error } = await supabase
     .from("profile_projects")
     .select(
@@ -38,14 +37,13 @@ async function fetchRequests() {
   if (!error) requests.value = data as ProfileProject[];
   else
     toast.add({
-      title: "Error al cargar solicitudes",
+      title: t("project.inbox.loadError"),
       description: error.message,
       color: "error",
     });
   loading.value = false;
 }
 
-// --- Aceptar/Rechazar ---
 async function handleAction(
   request: ProfileProject,
   newStatus: "accepted" | "rejected",
@@ -61,7 +59,6 @@ async function handleAction(
 
     if (error) throw error;
 
-    // Optimistic update: remove from list
     requests.value = requests.value.filter(
       (r) =>
         !(
@@ -72,12 +69,14 @@ async function handleAction(
 
     toast.add({
       title:
-        newStatus === "accepted" ? "Master aceptado" : "Solicitud rechazada",
+        newStatus === "accepted"
+          ? t("project.inbox.accepted")
+          : t("project.inbox.rejected"),
       color: newStatus === "accepted" ? "success" : "neutral",
     });
   } catch (err: any) {
     toast.add({
-      title: "Error al procesar",
+      title: t("project.inbox.processError"),
       description: err.message,
       color: "error",
     });
@@ -97,7 +96,7 @@ onMounted(fetchRequests);
       v-else-if="!requests.length"
       class="p-8 text-center text-gray-500 border-2 border-dashed border-gray-800 rounded-xl"
     >
-      No tienes solicitudes pendientes por ahora.
+      {{ $t("project.inbox.empty") }}
     </div>
 
     <TransitionGroup v-else name="list" tag="div" class="space-y-3">
@@ -114,7 +113,7 @@ onMounted(fetchRequests);
           <div>
             <p class="text-sm font-medium text-white">
               <span class="text-primary-400">@{{ req.profiles.username }}</span>
-              quiere unirse a
+              {{ $t("project.inbox.wantsToJoin") }}
             </p>
             <p class="text-xs text-gray-500 font-mono">
               {{ req.projects.name }}

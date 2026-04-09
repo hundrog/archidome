@@ -1,7 +1,4 @@
 <script setup lang="ts">
-// components/campaign/ImageField.vue
-
-// ─── Props & Emits ────────────────────────────────────────────────────────────
 const props = defineProps<{
   initialUrl?: string | null;
 }>();
@@ -10,13 +7,12 @@ const emit = defineEmits<{
   update: [payload: { file: File | null; removed: boolean }];
 }>();
 
-// ─── Setup ────────────────────────────────────────────────────────────────────
 const toast = useToast();
+const { t } = useI18n();
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const imagePreview = ref<string | null>(props.initialUrl ?? null);
 const imageFile = ref<File | null>(null);
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function onFileChange(event: Event) {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
@@ -24,16 +20,16 @@ function onFileChange(event: Event) {
 
   if (!file.type.startsWith("image/")) {
     toast.add({
-      title: "Archivo inválido",
-      description: "Solo se permiten imágenes.",
+      title: t("campaign.imageField.invalidFile"),
+      description: t("campaign.imageField.imagesOnly"),
       color: "error",
     });
     return;
   }
   if (file.size > 5 * 1024 * 1024) {
     toast.add({
-      title: "Imagen muy grande",
-      description: "El límite es 5 MB.",
+      title: t("campaign.imageField.tooLarge"),
+      description: t("campaign.imageField.maxSize"),
       color: "error",
     });
     return;
@@ -51,7 +47,6 @@ function removeImage() {
   emit("update", { file: null, removed: true });
 }
 
-// Limpiar object URL al desmontar para evitar memory leaks
 onUnmounted(() => {
   if (imagePreview.value?.startsWith("blob:")) {
     URL.revokeObjectURL(imagePreview.value);
@@ -60,9 +55,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <UFormField label="Imagen de portada" name="image">
+  <UFormField :label="$t('campaign.imageField.label')" name="image">
     <div class="space-y-3">
-      <!-- Preview -->
       <div
         v-if="imagePreview"
         class="relative w-full rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700"
@@ -70,7 +64,7 @@ onUnmounted(() => {
       >
         <img
           :src="imagePreview"
-          alt="Preview"
+          :alt="$t('common.preview')"
           class="w-full object-cover"
           style="max-height: 220px"
         />
@@ -84,7 +78,6 @@ onUnmounted(() => {
         />
       </div>
 
-      <!-- Dropzone -->
       <div
         v-else
         class="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-8 cursor-pointer hover:border-primary-400 transition-colors"
@@ -92,9 +85,11 @@ onUnmounted(() => {
       >
         <UIcon name="i-lucide-image-plus" class="text-4xl text-gray-400" />
         <p class="text-sm text-gray-500 dark:text-gray-400">
-          Haz clic para subir una imagen
+          {{ $t("campaign.imageField.uploadPrompt") }}
         </p>
-        <p class="text-xs text-gray-400">PNG, JPG, WEBP · máx. 5 MB</p>
+        <p class="text-xs text-gray-400">
+          {{ $t("campaign.imageField.formats") }}
+        </p>
       </div>
 
       <input

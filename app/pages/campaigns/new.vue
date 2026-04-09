@@ -7,28 +7,27 @@ const supabase = useSupabaseClient();
 const user = useSupabaseUser();
 const toast = useToast();
 const router = useRouter();
+const { t } = useI18n();
 
-// ─── Estado del formulario ────────────────────────────────────────────────────
 const campaignStore = useCampaignStore();
 
-// Reset form when mounting to clear any previous campaign data
 onMounted(() => {
   campaignStore.resetForm();
 });
 
-// ─── Imagen ───────────────────────────────────────────────────────────────────
-
-// ─── Tabs ─────────────────────────────────────────────────────────────────────
 const currentTab = ref("0");
 
-const tabs = [
-  { label: "01 Hook", slot: "hook", icon: "i-lucide-book-open" },
-  { label: "02 Portal", slot: "portal", icon: "i-lucide-compass" },
-  { label: "03 Rules", slot: "rules", icon: "i-lucide-scroll" },
-  { label: "04 House", slot: "house", icon: "i-lucide-home" },
-];
+const tabs = computed(() => [
+  { label: t("pages.campaignNew.tabHook"), slot: "hook", icon: "i-lucide-book-open" },
+  {
+    label: t("pages.campaignNew.tabPortal"),
+    slot: "portal",
+    icon: "i-lucide-compass",
+  },
+  { label: t("pages.campaignNew.tabRules"), slot: "rules", icon: "i-lucide-scroll" },
+  { label: t("pages.campaignNew.tabHouse"), slot: "house", icon: "i-lucide-home" },
+]);
 
-// Validación por tab antes de avanzar
 function validateCurrentTab(): boolean {
   try {
     if (currentTab.value === "0") {
@@ -45,7 +44,7 @@ function validateCurrentTab(): boolean {
     if (err instanceof z.ZodError) {
       const issue = err.issues[0];
       toast.add({
-        title: "Faltan datos",
+        title: t("pages.campaignNew.toastMissing"),
         description: issue?.message,
         color: "warning",
       });
@@ -58,7 +57,7 @@ function nextTab() {
   if (!validateCurrentTab()) return;
 
   const idx = parseInt(currentTab.value, 10);
-  if (idx !== -1 && idx < tabs.length - 1) {
+  if (idx !== -1 && idx < tabs.value.length - 1) {
     currentTab.value = (idx + 1).toString();
   }
 }
@@ -73,9 +72,6 @@ function prevTab() {
 const isLastTab = computed(() => currentTab.value === "3");
 const isFirstTab = computed(() => currentTab.value === "0");
 
-// ─── Subida de imagen ─────────────────────────────────────────────────────────
-
-// ─── Submit ───────────────────────────────────────────────────────────────────
 const loading = ref(false);
 
 async function onSubmit() {
@@ -120,70 +116,69 @@ async function onSubmit() {
     if (error) throw new Error(error.message);
 
     toast.add({
-      title: "¡Campaña creada!",
-      description: `"${campaignStore.form.title}" fue publicada.`,
+      title: t("pages.campaignNew.toastCreated"),
+      description: t("pages.campaignNew.toastCreatedDesc", {
+        title: campaignStore.form.title,
+      }),
       color: "success",
     });
     campaignStore.resetForm();
     router.push(`/campaigns/${data.id}`);
   } catch (err: any) {
-    toast.add({ title: "Error", description: err.message, color: "error" });
+    toast.add({
+      title: t("common.error"),
+      description: err.message,
+      color: "error",
+    });
   } finally {
     loading.value = false;
   }
 }
 
-// ─── SEO ──────────────────────────────────────────────────────────────────────
 useSeoMeta({
-  title: () => "Nueva Campaña",
-  description: () => "Crea una nueva campaña para tu proyecto.",
+  title: () => t("pages.campaignNew.seoTitle"),
+  description: () => t("pages.campaignNew.seoDescription"),
 });
 </script>
 
 <template>
   <div class="min-h-screen bg-surface">
     <div class="max-w-3xl mx-auto px-4 py-10 space-y-8">
-      <!-- ── Encabezado ── -->
       <div>
         <NuxtLink
           to="/campaigns"
           class="inline-flex items-center gap-2 font-body text-label-xl text-on-surface-dim hover:text-on-surface transition-colors mb-6"
         >
           <UIcon name="i-lucide-arrow-left" class="size-4" />
-          Volver a campañas
+          {{ $t("pages.campaignNew.back") }}
         </NuxtLink>
         <h1 class="font-display text-display-sm text-on-surface">
-          Forge Your Tale
+          {{ $t("pages.campaignNew.heading") }}
         </h1>
         <p class="font-body text-body-sm text-on-surface-dim mt-1">
-          Los reinos esperan. Define el camino y convoca a los héroes.
+          {{ $t("pages.campaignNew.subtitle") }}
         </p>
       </div>
 
-      <!-- ── Tabs ── -->
       <UTabs v-model="currentTab" :items="tabs">
-        <!-- Hook -->
         <template #hook>
           <div class="pt-8">
             <CampaignFormStepHook />
           </div>
         </template>
 
-        <!-- Portal -->
         <template #portal>
           <div class="pt-8">
             <CampaignFormStepPortal />
           </div>
         </template>
 
-        <!-- Rules -->
         <template #rules>
           <div class="pt-8">
             <CampaignFormStepRules />
           </div>
         </template>
 
-        <!-- House -->
         <template #house>
           <div class="pt-8">
             <CampaignFormStepHouse />
@@ -191,7 +186,6 @@ useSeoMeta({
         </template>
       </UTabs>
 
-      <!-- ── Navegación ── -->
       <div
         class="flex items-center justify-between pt-4 border-t border-outline-variant/20"
       >
@@ -199,7 +193,7 @@ useSeoMeta({
           v-if="!isFirstTab"
           variant="ghost"
           icon="i-lucide-arrow-left"
-          label="Anterior"
+          :label="$t('pages.campaignNew.previous')"
           class="rounded-full"
           @click="prevTab"
         />
@@ -209,7 +203,7 @@ useSeoMeta({
           v-if="!isLastTab"
           icon="i-lucide-arrow-right"
           trailing
-          label="Siguiente"
+          :label="$t('pages.campaignNew.next')"
           class="gradient-primary rounded-full text-white"
           @click="nextTab"
         />
@@ -217,7 +211,7 @@ useSeoMeta({
           v-else
           icon="i-lucide-sparkles"
           trailing
-          label="Manifest Adventure"
+          :label="$t('pages.campaignNew.manifestAdventure')"
           class="gradient-primary rounded-full text-white"
           :loading="loading"
           @click="onSubmit"
