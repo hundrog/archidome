@@ -1,6 +1,6 @@
 <!-- pages/campaigns/new.vue -->
 <script setup lang="ts">
-import { hookSchema, portalSchema, rulesSchema } from "@/schemas/campaign";
+import { hookSchema, portalSchema, rulesSchema, houseSchema } from "@/schemas/campaign";
 import { z } from "zod";
 
 const supabase = useSupabaseClient();
@@ -38,14 +38,7 @@ function validateCurrentTab(): boolean {
     } else if (currentTab.value === "2") {
       rulesSchema.parse(campaignStore.form);
     } else if (currentTab.value === "3") {
-      if (!campaignStore.form.project_id) {
-        toast.add({
-          title: "Faltan datos",
-          description: "Selecciona un proyecto",
-          color: "warning",
-        });
-        return false;
-      }
+      houseSchema.parse(campaignStore.form);
     }
     return true;
   } catch (err) {

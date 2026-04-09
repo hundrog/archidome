@@ -19,7 +19,7 @@ export const profileSchema = z.object({
   whatsapp: z.string().max(20).optional().or(z.literal("")),
   twitter: z.string().max(100).optional().or(z.literal("")),
   instagram: z.string().max(100).optional().or(z.literal("")),
-  website: z.string().url("URL inválida").optional().or(z.literal("")),
+  website: z.url("URL inválida").optional().or(z.literal("")),
 });
 
 export type ProfileForm = z.output<typeof profileSchema>;

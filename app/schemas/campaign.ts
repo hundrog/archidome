@@ -38,7 +38,7 @@ export const campaignSchema = z.object({
     .default([]),
 
   // Meta
-  project_id: z.string().uuid("Debes seleccionar un proyecto"),
+  project_id: z.uuidv4("Debes seleccionar un proyecto"),
   image: z.any().optional(),
 });
 
@@ -78,6 +78,11 @@ export const rulesSchema = z.object({
       }),
     )
     .default([]),
+});
+
+export const houseSchema = z.object({
+  project_id: z.uuidv4("Debes seleccionar un proyecto"),
+  image: z.any().optional(),
 });
 
 export type CampaignForm = z.output<typeof campaignSchema>;
