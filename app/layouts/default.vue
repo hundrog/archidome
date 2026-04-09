@@ -5,13 +5,28 @@ const route = useRoute();
 const user = useSupabaseUser();
 const supabase = useSupabaseClient();
 
-const baseItems = [
+const footerItems = [
   {
     to: "/privacy",
     label: "Privacy Policy",
     icon: "i-lucide-shield",
     auth: false,
+  },{
+    to: "/terms",
+    label: "Terms of Service",
+    icon: "i-lucide-file-text",
+    auth: false,
   },
+  {
+    to: "https://www.buymeacoffee.com/rollatable",
+    target: "_blank",
+    label: "Buy me a coffee",
+    icon: "i-simple-icons-buymeacoffee",
+    auth: false,
+  },
+];
+
+const baseItems = [
   {
     to: "https://www.buymeacoffee.com/rollatable",
     target: "_blank",
@@ -103,6 +118,14 @@ const logout = async () => {
       <slot />
     </UMain>
 
-    <UFooter />
+<UFooter>
+    <template #left>
+      <p class="text-muted text-sm">Copyright © {{ new Date().getFullYear() }}</p>
+    </template>
+    
+    <template #right>
+      <UNavigationMenu :items="footerItems" variant="link" />
+    </template>
+  </UFooter>
   </UApp>
 </template>
