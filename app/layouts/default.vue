@@ -18,7 +18,7 @@ const footerItems = [
     auth: false,
   },
   {
-    to: "https://www.buymeacoffee.com/rollatable",
+    to: "buymeacoffee.com/the.blue.pixel",
     target: "_blank",
     label: "Buy me a coffee",
     icon: "i-simple-icons-buymeacoffee",
@@ -28,7 +28,7 @@ const footerItems = [
 
 const baseItems = [
   {
-    to: "https://www.buymeacoffee.com/rollatable",
+    to: "buymeacoffee.com/the.blue.pixel",
     target: "_blank",
     label: "Buy me a coffee",
     icon: "i-simple-icons-buymeacoffee",
@@ -124,7 +124,7 @@ const logout = async () => {
     </template>
     
     <template #right>
-      <UNavigationMenu :items="footerItems" variant="link" />
+      <UNavigationMenu :items="footerItems" variant="link" orientation="vertical" />
     </template>
   </UFooter>
   </UApp>
