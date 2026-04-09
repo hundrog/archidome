@@ -52,4 +52,14 @@ export default defineNuxtConfig({
       },
     },
   },
+  app: {
+    head: {
+      meta: [
+        { 
+          name: 'google-site-verification', 
+          content: 'rtz3dRXj_l_9ht-UT4qBnGbeF9HWFNqNrQBBYS3xriQ' 
+        }
+      ]
+    }
+  }
 });
