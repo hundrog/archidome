@@ -18,8 +18,9 @@ const footerItems = [
     auth: false,
   },
   {
-    to: "buymeacoffee.com/the.blue.pixel",
+    to: "https://www.buymeacoffee.com/the.blue.pixel",
     target: "_blank",
+    rel: "noopener noreferrer",
     label: "Buy me a coffee",
     icon: "i-simple-icons-buymeacoffee",
     auth: false,
@@ -28,8 +29,9 @@ const footerItems = [
 
 const baseItems = [
   {
-    to: "buymeacoffee.com/the.blue.pixel",
+    to: "https://www.buymeacoffee.com/the.blue.pixel",
     target: "_blank",
+    rel: "noopener noreferrer",
     label: "Buy me a coffee",
     icon: "i-simple-icons-buymeacoffee",
     auth: false,
