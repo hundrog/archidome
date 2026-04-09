@@ -7,6 +7,12 @@ const supabase = useSupabaseClient();
 
 const baseItems = [
   {
+    to: "/privacy",
+    label: "Privacy Policy",
+    icon: "i-lucide-shield",
+    auth: false,
+  },
+  {
     to: "https://www.buymeacoffee.com/rollatable",
     target: "_blank",
     label: "Buy me a coffee",
