@@ -50,12 +50,6 @@ const baseItems = computed(() => [
     icon: "i-lucide-folder",
     auth: true,
   },
-  {
-    label: t("layout.settings"),
-    to: "/settings",
-    icon: "i-lucide-settings",
-    auth: true,
-  },
 ]);
 
 const items = computed<NavigationMenuItem[]>(() => [
@@ -92,7 +86,7 @@ const logout = async () => {
       <UNavigationMenu :items="items" :ui="{ list: 'gap-2' }" />
 
       <template #right>
-        <LayoutOptions />
+        <LayoutOptions :t="t" />
       </template>
 
       <template #body>

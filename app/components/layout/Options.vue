@@ -3,7 +3,10 @@ const user = useSupabaseUser();
 const avatarStore = useAvatarStore();
 import type { DropdownMenuItem } from "@nuxt/ui";
 const { locales, setLocale } = useI18n();
-const { t } = useI18n();
+
+const props = defineProps<{
+  t: CallableFunction;
+}>();
 
 const logout = async () => {
   await useSupabaseClient().auth.signOut();
@@ -21,27 +24,21 @@ const localeItems = computed(() => {
 const items = computed<DropdownMenuItem[][]>(() => [
   [
     {
-      label: t("layout.settings"),
+      label: props.t("layout.settings"),
       icon: "i-lucide-cog",
       to: "/settings",
     },
   ],
   [
     {
-      label: t("layout.locale"),
-      icon: "i-lucide-language",
+      label: props.t("layout.locale"),
+      icon: "i-lucide-languages",
       children: localeItems.value,
     },
   ],
   [
     {
-      label: t("layout.buyMeACoffee"),
-      icon: "i-simple-icons-buymeacoffee",
-      to: "https://www.buymeacoffee.com/the.blue.pixel",
-      target: "_blank",
-    },
-    {
-      label: t("layout.github"),
+      label: props.t("layout.github"),
       icon: "i-simple-icons-github",
       to: "https://github.com/hundrog/archidome",
       target: "_blank",
@@ -49,7 +46,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
   ],
   [
     {
-      label: t("layout.logout"),
+      label: props.t("layout.logout"),
       icon: "i-lucide-log-out",
       onClick: logout,
     },
