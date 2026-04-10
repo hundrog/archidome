@@ -3,17 +3,17 @@
     <UCard class="w-full max-w-md x-auto">
       <template #header>
         <h3 class="text-xl font-bold font-display">Send Feedback</h3>
-        <p class="text-sm text-gray-400">Help us improve Archdome</p>
+        <p class="text-sm text-gray-400">Help us improve Archidome</p>
       </template>
 
       <form
-        name="feedback-archdome"
+        name="feedback-archidome"
         method="POST"
         action="/success"
         data-netlify="true"
         data-netlify-honeypot="bot-field"
       >
-        <input type="hidden" name="form-name" value="feedback-archdome" />
+        <input type="hidden" name="form-name" value="feedback-archidome" />
 
         <input type="hidden" name="bot-field" />
 
