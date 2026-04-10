@@ -1,64 +1,74 @@
 <template>
   <UContainer class="h-screen flex items-center justify-center text-center">
-    <UCard class="w-full max-w-md mx-auto">
+    <UCard class="w-full max-w-md x-auto">
       <template #header>
         <h3 class="text-xl font-bold font-display">Send Feedback</h3>
         <p class="text-sm text-gray-400">Help us improve Archidome</p>
       </template>
 
-      <form @submit.prevent="sendFeedback" class="space-y-4 text-left">
-        <div>
-          <label class="block text-sm font-medium mb-1">Your Name</label>
-          <UInput v-model="form.name" placeholder="Adventurer name" required />
-        </div>
+      <form @submit.prevent="sendFeedback">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Your Name</label>
+            <input
+              type="text"
+              name="name"
+              required
+              class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 outline-none"
+            />
+          </div>
 
-        <div>
-          <label class="block text-sm font-medium mb-1">Feedback Type</label>
-          <USelect v-model="form.type" :options="['Bug Report', 'Feature Request', 'Other']" />
-        </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Feedback Type</label>
+            <select
+              name="type"
+              class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white outline-none"
+            >
+              <option>Bug Report</option>
+              <option>Feature Request</option>
+              <option>Other</option>
+            </select>
+          </div>
 
-        <div>
-          <label class="block text-sm font-medium mb-1">Message</label>
-          <UTextarea v-model="form.message" placeholder="What's on your mind?" required />
-        </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Message</label>
+            <textarea
+              name="message"
+              required
+              rows="4"
+              class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white outline-none"
+            ></textarea>
+          </div>
 
-        <UButton 
-          type="submit" 
-          block 
-          color="primary" 
-          :loading="loading"
-        >
-          Submit Feedback
-        </UButton>
+          <UButton type="submit" block> Submit Feedback </UButton>
+        </div>
       </form>
     </UCard>
   </UContainer>
 </template>
 
 <script setup>
-const supabase = useSupabaseClient()
-const loading = ref(false)
+const supabase = useSupabaseClient();
+const loading = ref(false);
 const form = ref({
-  name: '',
-  type: 'Feature Request',
-  message: ''
-})
+  name: "",
+  type: "Feature Request",
+  message: "",
+});
 
 const sendFeedback = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const { error } = await supabase
-      .from('feedbacks')
-      .insert([form.value])
+    const { error } = await supabase.from("feedbacks").insert([form.value]);
 
-    if (error) throw error
-    
+    if (error) throw error;
+
     // Éxito
-    await navigateTo('/success')
+    await navigateTo("/success");
   } catch (err) {
-    alert('Error enviando feedback: ' + err.message)
+    alert("Error enviando feedback: " + err.message);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 </script>
