@@ -92,25 +92,7 @@ const logout = async () => {
       <UNavigationMenu :items="items" :ui="{ list: 'gap-2' }" />
 
       <template #right>
-        <UButton
-          color="neutral"
-          variant="ghost"
-          icon="i-lucide-log-out"
-          :aria-label="$t('layout.logout')"
-          :label="$t('layout.logout')"
-          v-if="user"
-          @click="logout"
-        />
-
-        <UButton
-          color="neutral"
-          variant="ghost"
-          to="/login"
-          icon="i-lucide-log-in"
-          :aria-label="$t('layout.login')"
-          :label="$t('layout.login')"
-          v-else
-        />
+        <LayoutOptions />
       </template>
 
       <template #body>

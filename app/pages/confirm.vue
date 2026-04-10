@@ -2,10 +2,12 @@
 const route = useRoute();
 const toast = useToast();
 const { t } = useI18n();
+const user = useSupabaseUser();
+const avatarStore = useAvatarStore();
+
 definePageMeta({
   layout: "simple",
 });
-const user = useSupabaseUser();
 
 const error = computed(() => {
   if (route.query.error) {
@@ -41,7 +43,10 @@ watch(
   user,
   () => {
     if (user.value) {
+      avatarStore.fetchOnce(user.value.sub);
       return navigateTo("/campaigns");
+    } else {
+      avatarStore.reset();
     }
   },
   { immediate: true },
