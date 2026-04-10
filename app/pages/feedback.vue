@@ -1,83 +1,64 @@
 <template>
   <UContainer class="h-screen flex items-center justify-center text-center">
-    <UCard class="w-full max-w-md x-auto">
+    <UCard class="w-full max-w-md mx-auto">
       <template #header>
         <h3 class="text-xl font-bold font-display">Send Feedback</h3>
         <p class="text-sm text-gray-400">Help us improve Archidome</p>
       </template>
 
-      <form
-        name="feedback-archidome"
-        method="POST"
-        action="/success"
-        data-netlify="true"
-        data-netlify-honeypot="bot-field"
-        @submit.prevent="handleSubmit"
-      >
-        <input type="hidden" name="form-name" value="feedback-archidome" />
-
-        <input type="hidden" name="bot-field" />
-
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">Your Name</label>
-            <input
-              type="text"
-              name="name"
-              required
-              class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 outline-none"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium mb-1">Feedback Type</label>
-            <select
-              name="type"
-              class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white outline-none"
-            >
-              <option>Bug Report</option>
-              <option>Feature Request</option>
-              <option>Other</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium mb-1">Message</label>
-            <textarea
-              name="message"
-              required
-              rows="4"
-              class="w-full bg-gray-800 border border-gray-700 rounded-md px-3 py-2 text-white outline-none"
-            ></textarea>
-          </div>
-
-          <button
-            type="submit"
-            class="w-full flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-700 hover:bg-primary-900 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-          >
-            Submit Feedback
-          </button>
+      <form @submit.prevent="sendFeedback" class="space-y-4 text-left">
+        <div>
+          <label class="block text-sm font-medium mb-1">Your Name</label>
+          <UInput v-model="form.name" placeholder="Adventurer name" required />
         </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Feedback Type</label>
+          <USelect v-model="form.type" :options="['Bug Report', 'Feature Request', 'Other']" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Message</label>
+          <UTextarea v-model="form.message" placeholder="What's on your mind?" required />
+        </div>
+
+        <UButton 
+          type="submit" 
+          block 
+          color="primary" 
+          :loading="loading"
+        >
+          Submit Feedback
+        </UButton>
       </form>
     </UCard>
   </UContainer>
 </template>
 
 <script setup>
-const handleSubmit = async (e) => {
-  const form = e.target
-  const formData = new FormData(form)
+const supabase = useSupabaseClient()
+const loading = ref(false)
+const form = ref({
+  name: '',
+  type: 'Feature Request',
+  message: ''
+})
 
+const sendFeedback = async () => {
+  loading.value = true
   try {
-    await fetch("/", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams(formData).toString(),
-    })
-    // Una vez enviado con éxito a Netlify, navegamos manualmente
-    navigateTo('/success')
-  } catch (error) {
-    console.error('Error enviando feedback:', error)
+    const { error } = await supabase
+      .from('feedbacks')
+      .insert([form.value])
+
+    if (error) throw error
+    
+    // Éxito
+    await navigateTo('/success')
+  } catch (err) {
+    alert('Error enviando feedback: ' + err.message)
+  } finally {
+    loading.value = false
   }
 }
 </script>
