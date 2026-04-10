@@ -50,9 +50,12 @@
             ></textarea>
           </div>
 
-          <UButton type="submit" block color="primary">
+          <button
+            type="submit"
+            class="w-full flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-700 hover:bg-primary-900 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          >
             Submit Feedback
-          </UButton>
+          </button>
         </div>
       </form>
     </UCard>
