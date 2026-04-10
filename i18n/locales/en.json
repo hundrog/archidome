@@ -27,7 +27,8 @@
     "settings": "Settings",
     "logout": "Logout",
     "login": "Login",
-    "copyright": "Copyright © {year}"
+    "copyright": "Copyright © {year}",
+    "feedback": "Feedback"
   },
   "pages": {
     "index": {

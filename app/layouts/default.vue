@@ -3,10 +3,27 @@ import type { NavigationMenuItem } from "@nuxt/ui";
 
 const route = useRoute();
 const user = useSupabaseUser();
-const supabase = useSupabaseClient();
 const { t } = useI18n();
 
 const footerItems = computed(() => [
+  {
+    to: "https://www.buymeacoffee.com/the.blue.pixel",
+    target: "_blank",
+    rel: "noopener noreferrer",
+    label: t("layout.buyMeACoffee"),
+    icon: "i-simple-icons-buymeacoffee",
+    auth: false,
+  },
+  {
+    to: "/feedback",
+    label: t("layout.feedback"),
+    icon: "i-lucide-message-square",
+    auth: false,
+  },
+]);
+
+
+const footerLeftItems = computed(() => [
   {
     to: "/privacy",
     label: t("layout.privacyPolicy"),
@@ -19,14 +36,6 @@ const footerItems = computed(() => [
     icon: "i-lucide-file-text",
     auth: false,
   },
-  {
-    to: "https://www.buymeacoffee.com/the.blue.pixel",
-    target: "_blank",
-    rel: "noopener noreferrer",
-    label: t("layout.buyMeACoffee"),
-    icon: "i-simple-icons-buymeacoffee",
-    auth: false,
-  },
 ]);
 
 const baseItems = computed(() => [
@@ -36,6 +45,12 @@ const baseItems = computed(() => [
     rel: "noopener noreferrer",
     label: t("layout.buyMeACoffee"),
     icon: "i-simple-icons-buymeacoffee",
+    auth: false,
+  },
+  {
+    to: "/feedback",
+    label: t("layout.feedback"),
+    icon: "i-lucide-message-square",
     auth: false,
   },
   {
@@ -60,11 +75,6 @@ const items = computed<NavigationMenuItem[]>(() => [
       active: route.path === item.to,
     })),
 ]);
-
-const logout = async () => {
-  await supabase.auth.signOut();
-  navigateTo("/campaigns");
-};
 </script>
 
 <template>
@@ -108,9 +118,10 @@ const logout = async () => {
           {{ $t("layout.copyright", { year: new Date().getFullYear() }) }}
         </p>
       </template>
+      <UNavigationMenu :items="footerItems" variant="link" orientation="vertical" />
 
       <template #right>
-        <UNavigationMenu :items="footerItems" variant="link" orientation="vertical" />
+        <UNavigationMenu :items="footerLeftItems" variant="link" orientation="vertical" />
       </template>
     </UFooter>
   </UApp>
