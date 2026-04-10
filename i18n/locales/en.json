@@ -171,6 +171,23 @@
       "requestJoin": "Request to join project",
       "pendingMember": "Request pending or you are already on the team"
     },
+    "feedback": {
+      "title": "Send feedback",
+      "subtitle": "Help us improve The Archidome",
+      "nameLabel": "Your name",
+      "typeLabel": "Feedback type",
+      "typeBug": "Bug report",
+      "typeFeature": "Feature request",
+      "typeOther": "Other",
+      "messageLabel": "Message",
+      "submit": "Submit feedback",
+      "sendError": "Error sending feedback: {message}"
+    },
+    "success": {
+      "title": "Feedback received!",
+      "subtitle": "Thanks for helping us build The Archidome.",
+      "goBack": "Go back"
+    },
     "error": {
       "title": "Page not found",
       "description": "We are sorry but this page could not be found.",

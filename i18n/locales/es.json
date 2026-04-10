@@ -171,6 +171,23 @@
       "requestJoin": "Solicitar unirse al proyecto",
       "pendingMember": "Solicitud pendiente o ya formas parte del equipo"
     },
+    "feedback": {
+      "title": "Enviar comentarios",
+      "subtitle": "Ayúdanos a mejorar The Archidome",
+      "nameLabel": "Tu nombre",
+      "typeLabel": "Tipo de comentario",
+      "typeBug": "Informe de error",
+      "typeFeature": "Solicitud de función",
+      "typeOther": "Otro",
+      "messageLabel": "Mensaje",
+      "submit": "Enviar comentarios",
+      "sendError": "Error al enviar los comentarios: {message}"
+    },
+    "success": {
+      "title": "¡Comentarios recibidos!",
+      "subtitle": "Gracias por ayudarnos a construir The Archidome.",
+      "goBack": "Volver"
+    },
     "error": {
       "title": "Página no encontrada",
       "description": "Lo sentimos, no pudimos encontrar esta página.",
