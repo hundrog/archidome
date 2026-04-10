@@ -12,7 +12,7 @@
         action="/success"
         data-netlify="true"
         data-netlify-honeypot="bot-field"
-        rel="external"
+        @submit.prevent="handleSubmit"
       >
         <input type="hidden" name="form-name" value="feedback-archidome" />
 
@@ -62,3 +62,22 @@
     </UCard>
   </UContainer>
 </template>
+
+<script setup>
+const handleSubmit = async (e) => {
+  const form = e.target
+  const formData = new FormData(form)
+
+  try {
+    await fetch("/", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams(formData).toString(),
+    })
+    // Una vez enviado con éxito a Netlify, navegamos manualmente
+    navigateTo('/success')
+  } catch (error) {
+    console.error('Error enviando feedback:', error)
+  }
+}
+</script>
