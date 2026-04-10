@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "The Archdome",
+    "name": "The Archidome",
     "logoAlt": "Rollatable"
   },
   "common": {
@@ -31,14 +31,14 @@
   },
   "pages": {
     "index": {
-      "title": "The Archdome",
+      "title": "The Archidome",
       "description": "Encuentra campañas de rol para unirte o inspírate para crear la tuya.",
       "redirecting": "Redirigiendo a campañas…",
       "redirectHint": "Si no eres redirigido automáticamente, haz clic en el botón de abajo.",
       "goToCampaigns": "Ir a campañas"
     },
     "campaigns": {
-      "title": "The Archdome",
+      "title": "The Archidome",
       "description": "Encuentra campañas de rol para unirte o inspírate para crear la tuya."
     },
     "login": {

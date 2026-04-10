@@ -8,7 +8,7 @@
         <section class="space-y-3">
           <h2 class="text-xl font-bold text-white">1. Introduction</h2>
           <p>
-            Welcome to <strong>Archdome</strong>. We respect your privacy and are committed to protecting your personal data. This policy explains how we handle your information when you use our platform.
+            Welcome to <strong>Archidome</strong>. We respect your privacy and are committed to protecting your personal data. This policy explains how we handle your information when you use our platform.
           </p>
         </section>
 
@@ -34,7 +34,7 @@
 
         <section class="space-y-3">
           <h2 class="text-xl font-bold text-white">4. Third-Party Services</h2>
-          <p>Archdome uses specialized third-party services to operate:</p>
+          <p>Archidome uses specialized third-party services to operate:</p>
           <ul class="list-disc pl-5 space-y-1">
             <li><strong>Supabase:</strong> For database storage and authentication management.</li>
             <li><strong>Netlify:</strong> For web hosting.</li>

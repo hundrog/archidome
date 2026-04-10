@@ -57,7 +57,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
   <UDropdownMenu :items="items" v-if="user">
     <UAvatar
       :src="avatarStore.avatarUrl || undefined"
-      :alt="user?.user_metadata?.full_name || 'The Archdome'"
+      :alt="user?.user_metadata?.full_name || 'The Archidome'"
       size="md"
       class="cursor-pointer"
     />

@@ -1,4 +1,4 @@
-Archdome
+Archidome
 ===
 
 The Architect's Ledger for TTRPG Masters. A modern platform designed for Game Masters to manage campaigns, document chronicles, and collaborate on world-building projects.
@@ -6,7 +6,7 @@ The Architect's Ledger for TTRPG Masters. A modern platform designed for Game Ma
 Project Overview
 ---
 
-Archdome is a centralized management tool for tabletop role-playing games. It provides "Architects" with total control over their narratives, supporting a wide range of systems from classic high fantasy to "Natural Fantasy" titles like Fabula Ultima and dark settings such as Symbaroum.
+Archidome is a centralized management tool for tabletop role-playing games. It provides "Architects" with total control over their narratives, supporting a wide range of systems from classic high fantasy to "Natural Fantasy" titles like Fabula Ultima and dark settings such as Symbaroum.
 
 **Core Features:**
 
@@ -28,7 +28,7 @@ Getting Started
 Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/archdome.git
+git clone https://github.com/your-username/Archidome.git
 ```
 
 Install dependencies:

@@ -1,6 +1,6 @@
 {
   "brand": {
-    "name": "The Archdome",
+    "name": "The Archidome",
     "logoAlt": "Rollatable"
   },
   "common": {
@@ -31,14 +31,14 @@
   },
   "pages": {
     "index": {
-      "title": "The Archdome",
+      "title": "The Archidome",
       "description": "Find tabletop campaigns to join or get inspired to create your own.",
       "redirecting": "Redirecting to campaigns…",
       "redirectHint": "If you are not redirected automatically, click the button below.",
       "goToCampaigns": "Go to campaigns"
     },
     "campaigns": {
-      "title": "The Archdome",
+      "title": "The Archidome",
       "description": "Find tabletop campaigns to join or get inspired to create your own."
     },
     "login": {
