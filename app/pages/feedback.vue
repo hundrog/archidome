@@ -56,8 +56,13 @@ const form = ref({
   type: "Feature Request",
   message: "",
 });
+const botField = ref('')
 
 const sendFeedback = async () => {
+  if (botField.value !== '') {
+    console.warn("Bot detected")
+    return 
+  }
   loading.value = true;
   try {
     const { error } = await supabase.from("feedbacks").insert([form.value]);
